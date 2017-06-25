@@ -3,7 +3,7 @@ Ethereum Virtual Machine and Babble Consensus
 
 EVM-BABBLE is a wrapper for the Ethereum Virtual Machine (EVM) which is meant to  
 work side-by-side with a Babble node. Ethereum transactions are passed to Babble  
-to be broadcasted to other nodes and eventually fed back to the State in Consnesus  
+to be broadcasted to other nodes and eventually fed back to the State in Consensus  
 order. Babble ensures that all network participants process the same transactions  
 in the same order. An API service runs in parallel to handle private accounts  
 and expose Ethereum functionality.  
@@ -82,12 +82,12 @@ COMMANDS:
      help, h  Shows a list of commands or help for one command
 
 GLOBAL OPTIONS:
-   --datadir value      Directory for the databases and keystore (default: "/home/martin/.evm-babble")
+   --datadir value      Directory for the databases and keystore (default: "~/.evm-babble")
    --babble_addr value  IP:Port of Babble node (default: "127.0.0.1:1338")
    --proxy_addr value   IP:Port to bind Proxy server (default: "127.0.0.1:1339")
    --api_addr value     IP:Port to bind API server (default: ":8080")
    --log_level value    debug, info, warn, error, fatal, panic (default: "debug")
-   --pwd value          Password file to unlock accounts (default: "/home/martin/.evm-babble/pwd.txt")
+   --pwd value          Password file to unlock accounts (default: "~/.evm-babble/pwd.txt")
    --help, -h           show help
    --version, -v        print the version
 ```
