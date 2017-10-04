@@ -1,18 +1,21 @@
-hash: 52949e5801aab5d78f1e85f53cfc79a1dfd3a2a6261043bd4b6996c1fe48613e
-updated: 2017-06-22T18:33:59.730331439+02:00
+hash: 5eaec0f429c17c1d6e56c52ae46d6d2e895e0508581c550ed40831b38631cc30
+updated: 2017-10-04T15:21:12.569871924+01:00
 imports:
-- name: github.com/aristanetworks/goarista
-  version: 6c446722131a3182ce8d354a85816742fd61a838
-  subpackages:
-  - monotime
-- name: github.com/babbleio/babble
-  version: 81345a125b20c403f35c13dc03d077b8b23d3dc7
+- name: bitbucket.org/mosaicnet/babble
+  version: 7a41354991bbae5650c59725fca6f4f0d9165862
+  vcs: git
   subpackages:
   - proxy/babble
+- name: github.com/aristanetworks/goarista
+  version: 34c98d5e5f9b0c0a627fb48fd28ec6392dae5dbf
+  subpackages:
+  - monotime
 - name: github.com/btcsuite/btcd
-  version: a6965d493fdfb833b6b3a83c3958ab18968fe24e
+  version: b8df516b4b267acf2de46be593a9d948d1d2c420
   subpackages:
   - btcec
+- name: github.com/btcsuite/fastsha256
+  version: 637e656429416087660c84436a2a035d69d54e2e
 - name: github.com/edsrzf/mmap-go
   version: 0bce6a6887123b67a60366d2c9fe2dfb74289d2e
 - name: github.com/ethereum/go-ethereum
@@ -45,29 +48,31 @@ imports:
   - rpc
   - trie
 - name: github.com/go-stack/stack
-  version: 7a2f19628aabfe68f0766b59e74d6315f8347d22
+  version: 100eb0c0a9c5b306ca2fb4f165df21d80ada4b82
 - name: github.com/golang/snappy
   version: 553a641470496b2327abcac10b36396bd98e45c9
 - name: github.com/gorilla/context
   version: 08b5f424b9271eedf6f9f0ce86cb9396ed337a42
 - name: github.com/gorilla/mux
-  version: bcd8bc72b08df0f70df986b97f95590779502d31
+  version: 0eeaf8392f5b04950925b8a69fe70f110fa7cbfc
 - name: github.com/hashicorp/golang-lru
   version: 0a025b7e63adc15a622f29b0b2c4c3848243bbf6
   subpackages:
   - simplelru
 - name: github.com/pborman/uuid
-  version: e790cca94e6cc75c7064b1332e63811d4aae1a53
+  version: 5007efa264d92316c43112bc573e754bc889b7b1
 - name: github.com/rcrowley/go-metrics
   version: 1f30fe9094a513ce4c700b9a54458bbb0c96996c
   subpackages:
   - exp
 - name: github.com/rjeczalik/notify
-  version: 88a54d914928e1faebb1c2195605dc87bd98dc27
+  version: 7e20c15e6693a7d6ad269a94b70ed68bc4a875a7
 - name: github.com/rs/cors
-  version: 8dd4211afb5d08dbb39a533b9bb9e4b486351df6
+  version: a62a804a8a009876ca59105f7899938a1349f4b3
+- name: github.com/rs/xhandler
+  version: ed27b6fd65218132ee50cd95f38474a3d8a2cd12
 - name: github.com/Sirupsen/logrus
-  version: 202f25545ea4cf9b191ff7f846df5d87c9382c2b
+  version: c078b1e43f58d563c74cebe63c85789e76ddb627
 - name: github.com/syndtr/goleveldb
   version: 8c81ea47d4c41a385645e133e15510fc6a2a74b4
   subpackages:
@@ -84,17 +89,18 @@ imports:
   - leveldb/table
   - leveldb/util
 - name: golang.org/x/crypto
-  version: adbae1b6b6fb4b02448a0fc0dbbc9ba2b95b294d
+  version: c7af5bf2638a1164f2eb5467c39c6cffbd13a02e
   subpackages:
   - pbkdf2
   - ripemd160
   - scrypt
 - name: golang.org/x/net
-  version: 057a25b06247e0c51ba15d8ae475feb2fcb72164
+  version: feeb485667d1fdabe727840fe00adc22431bc86e
   subpackages:
+  - context
   - websocket
 - name: golang.org/x/sys
-  version: fb4cac33e3196ff7f507ab9b2d2a44b0142f5b5a
+  version: e62c3de784db939836898e5c19ffd41bece347da
   subpackages:
   - unix
 - name: gopkg.in/fatih/set.v0

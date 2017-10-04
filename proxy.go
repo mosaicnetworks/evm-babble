@@ -3,8 +3,8 @@ package evmbabble
 import (
 	"time"
 
+	bproxy "bitbucket.org/mosaicnet/babble/proxy/babble"
 	"github.com/Sirupsen/logrus"
-	bproxy "github.com/babbleio/babble/proxy/babble"
 )
 
 type Config struct {

@@ -1,12 +1,12 @@
-package: github.com/babbleio/evm-babble
+package: bitbucket.org/mosaicnet/evm-babble
 import:
-- package: github.com/Sirupsen/logrus
-  version: ^1.0.0
-- package: github.com/babbleio/babble
+- package: bitbucket.org/mosaicnet/babble
+  vcs: git
   subpackages:
   - proxy/babble
+- package: github.com/Sirupsen/logrus
 - package: github.com/ethereum/go-ethereum
-  version: ^1.6.5
+  version: =1.6.5
   subpackages:
   - accounts
   - accounts/keystore
@@ -21,6 +21,4 @@ import:
   - params
   - rlp
 - package: github.com/gorilla/mux
-  version: ^1.1.0
 - package: gopkg.in/urfave/cli.v1
-  version: ^1.19.1

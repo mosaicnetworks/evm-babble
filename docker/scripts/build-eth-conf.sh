@@ -14,7 +14,7 @@ for i in $(seq 1 $N)
 do
 	dest=$DEST/node$i/eth
 	mkdir -p $dest
-    geth -verbosity=1 --datadir=$dest account new --password=$PASS | \
+    geth -verbosity=1 --datadir=$dest --password=$PASS account new  | \
     awk '{gsub("[{}]", "\""); print $2}'  >> $dest/addr
 done
 
