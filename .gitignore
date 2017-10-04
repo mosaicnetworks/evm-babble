@@ -4,3 +4,9 @@ docker/babble/babble
 docker/evm-babble/evmbabble
 docker/conf
 
+terraform/babble.pem
+terraform/terraform.tfstate*
+terraform/secret.tfvars
+terraform/conf/*
+terraform/ips.dat
+
