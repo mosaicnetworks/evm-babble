@@ -126,7 +126,7 @@ func (s *State) AppendTx(tx []byte) error {
 	receipt.Logs = s.was.state.GetLogs(t.Hash())
 	receipt.Bloom = ethTypes.CreateBloom(ethTypes.Receipts{receipt})
 
-	s.was.txIndex += 1
+	s.was.txIndex++
 	s.was.transactions = append(s.was.transactions, &t)
 	s.was.receipts = append(s.was.receipts, receipt)
 	s.was.allLogs = append(s.was.allLogs, receipt.Logs...)

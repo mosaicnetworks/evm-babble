@@ -36,7 +36,7 @@ runthis txRes \
         "curl -X POST http://172.77.5.$c1p:8080/tx -d $tx -s"
 txHash=$(echo $txRes | jq .TxHash | awk '{gsub("[\"]", ""); print $1}')
 
-#wati for transaction to be committed
+#wait for transaction to be committed
 sleep 2s
 
 runthis receipt \
