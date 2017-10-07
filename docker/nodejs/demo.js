@@ -48,6 +48,22 @@ API.prototype.getAccounts = function() {
     })
 }  
 
+API.prototype.call = function(tx) {
+    var options = {
+        host: this.host,
+        port: this.port,
+        path: '/call',
+        method: 'POST'
+      };
+    
+    return new Promise((resolve, reject) => {
+        req = request(options, resolve)
+        req.write(tx)
+        req.on('error', (err) => reject(err))
+        req.end()
+    })
+} 
+
 API.prototype.sendTx = function(tx) {
     var options = {
         host: this.host,
@@ -96,7 +112,11 @@ Contract.prototype.compile = function() {
     this.abi = output.contracts[this.name].interface
 }
 
-
+//we have to use a legacy solc compiler (v0.4.8) to compile the contract because
+//the version of the evm we are using is old
+legacyContract = new Contract('', 'Test')
+legacyContract.bytecode = '6060604052600160005534610000575b6101158061001e6000396000f30060606040526000357c0100000000000000000000000000000000000000000000000000000000900463ffffffff16806329e99f07146046578063cb0d1c76146074575b6000565b34600057605e6004808035906020019091905050608e565b6040518082815260200191505060405180910390f35b34600057608c6004808035906020019091905050609c565b005b6000600a820290505b919050565b806000600082825401925050819055507ffa753cb3413ce224c9858a63f9d3cf8d9d02295bdb4916a594b41499014bb57f6000546040518082815260200191505060405180910390a15b505600a165627a7a72305820c6efb8842641b4ae24d8981702d2f3edd59b71ed10abfde086697615bfb4af360029'
+legacyContract.abi = '[{"constant":true,"inputs":[{"name":"i","type":"uint256"}],"name":"test","outputs":[{"name":"","type":"uint256"}],"payable":false,"type":"function","stateMutability":"view"},{"constant":false,"inputs":[{"name":"i","type":"uint256"}],"name":"testAsync","outputs":[],"payable":false,"type":"function","stateMutability":"nonpayable"},{"anonymous":false,"inputs":[{"indexed":false,"name":"","type":"uint256"}],"name":"LocalChange","type":"event"}]'
 //..............................................................................
 
 node1API = new API('172.77.5.5', '8080')
@@ -148,11 +168,13 @@ node1API.getAccounts()
         node2Accs = JSONbig.parse(accs).Accounts
     })
     .then(() => {
-        testContract = new Contract('demo.sol', 'Test')
-        testContract.compile()
+        // testContract = new Contract('demo.sol', 'Test')
+        // testContract.compile()
+        testContract = legacyContract
         tx = {
             from: node1Accs[0].Address,
-            value: 666,
+            gas: 1000000,
+            gasPrice: 0,
             data: testContract.bytecode
         }
         return node1API.sendTx(JSONbig.stringify(tx))
@@ -174,17 +196,19 @@ node1API.getAccounts()
     .then( (contractAddress) => {
         console.log("json abi", testContract.abi)
         w3Contract = new web3.eth.Contract(JSONbig.parse(testContract.abi), contractAddress)
-        method = w3Contract.methods.testAsync
+        method = w3Contract.methods.test
         callData = method(10).encodeABI()
 
         tx = {
             from: node1Accs[0].Address,
-            gaz:500000,
+            gaz:50000,
+            gazPrice:10,
+            value:0,
             to: contractAddress,
             data: callData
         }
 
-        return node1API.sendTx(JSONbig.stringify(tx))
+        return node1API.call(JSONbig.stringify(tx))
     })
     .then( (res) => {
         console.log('Node 1 tx response', res)

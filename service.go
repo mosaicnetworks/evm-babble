@@ -114,6 +114,7 @@ func (m *Service) getState() (*State, error) {
 func (m *Service) serveAPI() {
 	router := mux.NewRouter()
 	router.HandleFunc("/accounts", m.makeHandler(accountsHandler)).Methods("GET")
+	router.HandleFunc("/call", m.makeHandler(callHandler)).Methods("POST")
 	router.HandleFunc("/tx", m.makeHandler(transactionHandler)).Methods("POST")
 	router.HandleFunc("/tx/{tx_hash}", m.makeHandler(transactionReceiptHandler)).Methods("GET")
 	http.ListenAndServe(m.apiAddr, router)

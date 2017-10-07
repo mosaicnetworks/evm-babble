@@ -73,6 +73,33 @@ func (s *State) Init(proxy *Proxy) error {
 
 //------------------------------------------------------------------------------
 
+func (s *State) Call(callMsg ethTypes.Message) ([]byte, error) {
+	s.logger.Debug("Call")
+	s.commitMutex.Lock()
+	defer s.commitMutex.Unlock()
+
+	context := vm.Context{
+		CanTransfer: core.CanTransfer,
+		Transfer:    core.Transfer,
+		GetHash:     func(uint64) common.Hash { return common.Hash{} },
+		// Message information
+		Origin:   callMsg.From(),
+		GasPrice: callMsg.GasPrice(),
+	}
+
+	// The EVM should never be reused and is not thread safe.
+	vmenv := vm.NewEVM(context, s.was.state, &s.chainConfig, s.vmConfig)
+
+	// Apply the transaction to the current state (included in the env)
+	res, _, err := core.ApplyMessage(vmenv, callMsg, s.was.gp)
+	if err != nil {
+		s.logger.WithError(err).Error("Executing Call on WAS")
+		return nil, err
+	}
+
+	return res, err
+}
+
 // AppendTx applies the tx to the WAS
 func (s *State) AppendTx(tx []byte) error {
 	s.logger.Debug("AppendTx")

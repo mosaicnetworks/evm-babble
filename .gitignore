@@ -1,8 +1,12 @@
+debug.test
+.vscode
+
 vendor
 
 docker/babble/babble
 docker/evm-babble/evmbabble
 docker/conf
+docker/nodejs/node_modules
 
 terraform/babble.pem
 terraform/terraform.tfstate*

@@ -226,7 +226,6 @@ sudo apt-get install jq
 
 Finally run the demo:  
 
-
 ```bash
 cd docker
 make  # build docker images for Babble and EVM-Babble
@@ -235,6 +234,24 @@ make demo # run through a demo scenario
 make stop # stop and remove all resources
 ```
 
+### NodeJS demo
+
+**Dependencies**
+
+```bash
+#download node version manager:  
+curl -o- https://raw.githubusercontent.com/creationix/nvm/v0.33.5/install.sh | bash  
+#install node:
+nvm install node stable
+#install packages
+cd nodejs
+npm install json-bigint solc web3
+```
+
+**Run demo**
+```bash
+node demo.js
+```
 
 
 

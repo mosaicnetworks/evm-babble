@@ -44,6 +44,52 @@ func accountsHandler(w http.ResponseWriter, r *http.Request, m *Service) {
 	w.Write(js)
 }
 
+func callHandler(w http.ResponseWriter, r *http.Request, m *Service) {
+	m.logger.WithField("request", r).Debug("POST call")
+
+	state, err := m.getState()
+	if err != nil {
+		m.logger.WithError(err).Error("Getting State")
+		http.Error(w, err.Error(), http.StatusInternalServerError)
+		return
+	}
+
+	decoder := json.NewDecoder(r.Body)
+	var txArgs SendTxArgs
+	err = decoder.Decode(&txArgs)
+	if err != nil {
+		m.logger.WithError(err).Error("Decoding JSON txArgs")
+		http.Error(w, err.Error(), http.StatusInternalServerError)
+		return
+	}
+	defer r.Body.Close()
+
+	callMessage, err := prepareCallMessage(txArgs, m.keyStore)
+	if err != nil {
+		m.logger.WithError(err).Error("Converting to CallMessage")
+		http.Error(w, err.Error(), http.StatusInternalServerError)
+		return
+	}
+
+	data, err := state.Call(*callMessage)
+	if err != nil {
+		m.logger.WithError(err).Error("Executing Call")
+		http.Error(w, err.Error(), http.StatusInternalServerError)
+		return
+	}
+
+	res := struct{ Data string }{Data: common.ToHex(data)}
+	js, err := json.Marshal(res)
+	if err != nil {
+		m.logger.WithError(err).Error("Marshaling JSON response")
+		http.Error(w, err.Error(), http.StatusInternalServerError)
+		return
+	}
+
+	w.Header().Set("Content-Type", "application/json")
+	w.Write(js)
+}
+
 func transactionHandler(w http.ResponseWriter, r *http.Request, m *Service) {
 	m.logger.WithField("request", r).Debug("POST tx")
 
@@ -163,6 +209,28 @@ func transactionReceiptHandler(w http.ResponseWriter, r *http.Request, m *Servic
 }
 
 //------------------------------------------------------------------------------
+func prepareCallMessage(args SendTxArgs, ks *keystore.KeyStore) (*ethTypes.Message, error) {
+	var err error
+	args, err = prepareSendTxArgs(args)
+	if err != nil {
+		return nil, err
+	}
+
+	//Todo set default from
+
+	//Create Call Message
+	msg := ethTypes.NewMessage(args.From,
+		args.To,
+		0,
+		args.Value,
+		args.Gas,
+		args.GasPrice,
+		common.FromHex(args.Data),
+		false)
+
+	return &msg, nil
+
+}
 
 func prepareTransaction(args SendTxArgs, state *State, ks *keystore.KeyStore) (*ethTypes.Transaction, error) {
 	var err error

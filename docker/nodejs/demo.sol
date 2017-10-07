@@ -1,4 +1,4 @@
-pragma solidity ^0.4.11;
+pragma solidity 0.4.8;
 
 contract Test {
    
@@ -7,7 +7,8 @@ contract Test {
    event LocalChange(uint);
 
    function test(uint i) constant returns (uint){
-        return i * 10;
+        //return i * 10;
+        return 666;
    }
 
    function testAsync(uint i) {
