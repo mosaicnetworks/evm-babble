@@ -88,7 +88,9 @@ func (s *State) Call(callMsg ethTypes.Message) ([]byte, error) {
 	}
 
 	// The EVM should never be reused and is not thread safe.
-	vmenv := vm.NewEVM(context, s.was.state, &s.chainConfig, s.vmConfig)
+	// Call is done on a copy of the state...we dont want any changes to be persisted
+	// Call is a readonly operation
+	vmenv := vm.NewEVM(context, s.was.state.Copy(), &s.chainConfig, s.vmConfig)
 
 	// Apply the transaction to the current state (included in the env)
 	res, _, err := core.ApplyMessage(vmenv, callMsg, s.was.gp)
@@ -124,9 +126,13 @@ func (s *State) AppendTx(tx []byte) error {
 		Transfer:    core.Transfer,
 		GetHash:     func(uint64) common.Hash { return common.Hash{} },
 		// Message information
-		Origin:   msg.From(),
-		GasPrice: msg.GasPrice(),
+		Origin:      msg.From(),
+		GasPrice:    msg.GasPrice(),
+		BlockNumber: big.NewInt(0), //the vm has a dependency on this..
 	}
+
+	//XXX
+	s.was.state.Prepare(t.Hash(), common.Hash{}, 0)
 
 	// The EVM should never be reused and is not thread safe.
 	vmenv := vm.NewEVM(context, s.was.state, &s.chainConfig, s.vmConfig)
@@ -142,7 +148,8 @@ func (s *State) AppendTx(tx []byte) error {
 
 	// Create a new receipt for the transaction, storing the intermediate root and gas used by the tx
 	// based on the eip phase, we're passing wether the root touch-delete accounts.
-	receipt := ethTypes.NewReceipt(s.statedb.IntermediateRoot(true).Bytes(), s.was.totalUsedGas)
+	root := s.was.state.IntermediateRoot(true) //this has side effects. It updates StateObjects (SmartContract memory)
+	receipt := ethTypes.NewReceipt(root.Bytes(), s.was.totalUsedGas)
 	receipt.TxHash = t.Hash()
 	receipt.GasUsed = new(big.Int).Set(gas)
 	// if the transaction created a contract, store the creation address in the receipt.
@@ -151,6 +158,7 @@ func (s *State) AppendTx(tx []byte) error {
 	}
 	// Set the receipt logs and create a bloom for filtering
 	receipt.Logs = s.was.state.GetLogs(t.Hash())
+	//receipt.Logs = s.was.state.Logs()
 	receipt.Bloom = ethTypes.CreateBloom(ethTypes.Receipts{receipt})
 
 	s.was.txIndex++

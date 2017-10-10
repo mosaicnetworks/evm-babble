@@ -228,28 +228,39 @@ Finally run the demo:
 
 ```bash
 cd docker
-make  # build docker images for Babble and EVM-Babble
-make  # create testnet
-make demo # run through a demo scenario
-make stop # stop and remove all resources
+[...]/evm-babble/docker$ make images  # build docker images for Babble and EVM-Babble
+[...]/evm-babble/docker$ make  # create testnet
+[...]/evm-babble/docker$ make demo # run through a demo scenario
+[...]/evm-babble/docker$ make stop # stop and remove all resources
 ```
 
 ### NodeJS demo
 
-**Dependencies**
+The NodeJS demo demonstrates the interaction with SmartContracts. It shows how to  
+deploy a SmartContract and call its methods.
+
+There are two types of methods:  
+- Constant methods that do not update the State. These can be called through the
+`/call` endpoint
+- Non-constant methods that update the State and rely on a transaction that needs  
+to be processed by Babble. These functions do not return a value directly but they  
+create EVM Logs which can be recovered in the transaction receipt.
+
+_Dependencies_
 
 ```bash
 #download node version manager:  
 curl -o- https://raw.githubusercontent.com/creationix/nvm/v0.33.5/install.sh | bash  
 #install node:
 nvm install node stable
-#install packages
-cd nodejs
-npm install json-bigint solc web3
 ```
 
-**Run demo**
+From the ```evm-babble/docker/nodejs``` directory:  
+
 ```bash
+#install packages
+npm install json-bigint solc web3@0.19.0
+#run demo
 node demo.js
 ```
 

@@ -7,8 +7,7 @@ contract Test {
    event LocalChange(uint);
 
    function test(uint i) constant returns (uint){
-        //return i * 10;
-        return 666;
+        return i * 10;
    }
 
    function testAsync(uint i) {
