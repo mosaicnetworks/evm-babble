@@ -3,14 +3,13 @@ debug.test
 
 vendor
 
-docker/babble/babble
-docker/evm-babble/evmbabble
-docker/conf
-docker/nodejs/node_modules
-
-terraform/babble.pem
-terraform/terraform.tfstate*
-terraform/secret.tfvars
-terraform/conf/*
-terraform/ips.dat
+demo/bin/babble/babble
+demo/bin/evm-babble/evmbabble
+demo/nodejs/node_modules
+demo/docker/conf
+demo/terraform/babble.pem
+demo/terraform/terraform.tfstate*
+demo/terraform/secret.tfvars
+demo/terraform/conf
+demo/terraform/ips.dat
 

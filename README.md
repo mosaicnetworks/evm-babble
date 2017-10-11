@@ -62,7 +62,7 @@ This will download all the depencies and put them in the vendor folder.
 The application needs to be started side-by-side with a Babble node otherwise it  
 wont work. 
 
-The **babble_addr** option specifies the endpoint where the Babble nodes is listening  
+The **babble_addr** option specifies the endpoint where the Babble node is listening  
 to the App. This corresponds to the **proxy_addr** flag used when starting Babble.
 
 The **proxy_addr** option specifies the endpoint where the App is listening to Babble.  
@@ -202,67 +202,21 @@ Then check accounts again to see that the balances have changed:
    ]
 }
 ```
-## Docker Testnet
-The docker folder contains some scripts to bootstrap a testnet of four nodes.
+## Deployment
 
-### Dependencies
+The ```demo``` folder contains examples of how to use **evm-babble** and **babble**  
+to create a permissionned network of nodes. There are two deployment scenarios:
 
-We use **Geth** to generate cryptographic key-pairs in a format readable by the  
-EVM. If you don't have it already installed visit [this page](https://github.com/ethereum/go-ethereum/wiki/Building-Ethereum) for instructions.  
-For Ubuntu users:  
+- **docker**: Uses Docker to create a testnet with a configuratble number of nodes  
+  on the local host.
+- **terraform**: Uses Terraform to deploy a testnet on AWS.
 
-```bash
-sudo apt-get install software-properties-common
-sudo add-apt-repository -y ppa:ethereum/ethereum
-sudo apt-get update
-sudo apt-get install ethereum
-```
+There are also some example scripts and javascript files that provide a way to  
+interract with evm-babble - query accounts, send transactions, upload and call  
+SmartContracts.
 
-We also use **jq** to extract data from JSON messages.
+See the README in that directory for more info.   
 
-```bash
-sudo apt-get install jq
-```
-
-Finally run the demo:  
-
-```bash
-cd docker
-[...]/evm-babble/docker$ make images  # build docker images for Babble and EVM-Babble
-[...]/evm-babble/docker$ make  # create testnet
-[...]/evm-babble/docker$ make demo # run through a demo scenario
-[...]/evm-babble/docker$ make stop # stop and remove all resources
-```
-
-### NodeJS demo
-
-The NodeJS demo demonstrates the interaction with SmartContracts. It shows how to  
-deploy a SmartContract and call its methods.
-
-There are two types of methods:  
-- Constant methods that do not update the State. These can be called through the
-`/call` endpoint
-- Non-constant methods that update the State and rely on a transaction that needs  
-to be processed by Babble. These functions do not return a value directly but they  
-create EVM Logs which can be recovered in the transaction receipt.
-
-_Dependencies_
-
-```bash
-#download node version manager:  
-curl -o- https://raw.githubusercontent.com/creationix/nvm/v0.33.5/install.sh | bash  
-#install node:
-nvm install node stable
-```
-
-From the ```evm-babble/docker/nodejs``` directory:  
-
-```bash
-#install packages
-npm install json-bigint solc web3@0.19.0
-#run demo
-node demo.js
-```
 
 
 
