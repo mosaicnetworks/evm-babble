@@ -91,7 +91,7 @@ resource "aws_instance" "server" {
   count = "${var.servers}"
   
   //custom ami with ubuntu + babble + evm-babble
-  ami = "ami-fe85979a" 
+  ami = "ami-aabdafce" 
   instance_type = "t2.micro"
 
   subnet_id = "${aws_subnet.babblenet.id}"
@@ -109,7 +109,7 @@ resource "aws_instance" "server" {
     destination = "babble_conf" 
   }
 
-   provisioner "file" {
+  provisioner "file" {
     source      = "conf/node${count.index +1}/eth"
     destination = "eth_conf" 
   }
