@@ -182,13 +182,6 @@ Contract.prototype.parseLogs = function(logs) {
     })
 }
 
-//we have to use a legacy solc compiler (v0.4.8) to compile the contract because
-//the version of the evm we are using is old
-legacyContract = new Contract('', 'Test')
-legacyContract.bytecode = '6060604052600160005534610000575b6101158061001e6000396000f30060606040526000357c0100000000000000000000000000000000000000000000000000000000900463ffffffff16806329e99f07146046578063cb0d1c76146074575b6000565b34600057605e6004808035906020019091905050608e565b6040518082815260200191505060405180910390f35b34600057608c6004808035906020019091905050609c565b005b6000600a820290505b919050565b806000600082825401925050819055507ffa753cb3413ce224c9858a63f9d3cf8d9d02295bdb4916a594b41499014bb57f6000546040518082815260200191505060405180910390a15b505600a165627a7a72305820c6efb8842641b4ae24d8981702d2f3edd59b71ed10abfde086697615bfb4af360029'
-legacyContract.abi = '[{"constant":true,"inputs":[{"name":"i","type":"uint256"}],"name":"test","outputs":[{"name":"","type":"uint256"}],"payable":false,"type":"function","stateMutability":"view"},{"constant":false,"inputs":[{"name":"i","type":"uint256"}],"name":"testAsync","outputs":[],"payable":false,"type":"function","stateMutability":"nonpayable"},{"anonymous":false,"inputs":[{"indexed":false,"name":"","type":"uint256"}],"name":"LocalChange","type":"event"}]'
-legacyContract.w3 = web3.eth.contract(JSONbig.parse(legacyContract.abi)).at('');
-
 //..............................................................................
 
 console.log(argv)
@@ -242,12 +235,10 @@ transfer = function(amount) {
     })
 }
 
-//We use a hardcoded precompiled contract because our version of EVM only works
-//with contracts compiled with solc v0.4.8 and before
-//When we update our go-ethereum dependencies, we will be able to compile and use
-//contracts dynamically
 deployContract = function() {
-    testContract = legacyContract
+    testContract = new Contract('../nodejs/demo.sol', 'Test')
+    testContract.compile()
+
     tx = {
         from: node1Accs[0].Address,
         gas: 1000000,

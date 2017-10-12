@@ -48,7 +48,7 @@ func NewState(logger *logrus.Logger) (*State, error) {
 		return nil, err
 	}
 
-	state, err := state.New(common.Hash{}, db)
+	state, err := state.New(common.Hash{}, state.NewDatabase(db))
 	if err != nil {
 		return nil, err
 	}
@@ -93,7 +93,7 @@ func (s *State) Call(callMsg ethTypes.Message) ([]byte, error) {
 	vmenv := vm.NewEVM(context, s.was.state.Copy(), &s.chainConfig, s.vmConfig)
 
 	// Apply the transaction to the current state (included in the env)
-	res, _, err := core.ApplyMessage(vmenv, callMsg, s.was.gp)
+	res, _, _, err := core.ApplyMessage(vmenv, callMsg, s.was.gp)
 	if err != nil {
 		s.logger.WithError(err).Error("Executing Call on WAS")
 		return nil, err
@@ -138,7 +138,7 @@ func (s *State) AppendTx(tx []byte) error {
 	vmenv := vm.NewEVM(context, s.was.state, &s.chainConfig, s.vmConfig)
 
 	// Apply the transaction to the current state (included in the env)
-	_, gas, err := core.ApplyMessage(vmenv, msg, s.was.gp)
+	_, gas, failed, err := core.ApplyMessage(vmenv, msg, s.was.gp)
 	if err != nil {
 		s.logger.WithError(err).Error("Applying transaction to WAS")
 		return err
@@ -149,7 +149,7 @@ func (s *State) AppendTx(tx []byte) error {
 	// Create a new receipt for the transaction, storing the intermediate root and gas used by the tx
 	// based on the eip phase, we're passing wether the root touch-delete accounts.
 	root := s.was.state.IntermediateRoot(true) //this has side effects. It updates StateObjects (SmartContract memory)
-	receipt := ethTypes.NewReceipt(root.Bytes(), s.was.totalUsedGas)
+	receipt := ethTypes.NewReceipt(root.Bytes(), failed, s.was.totalUsedGas)
 	receipt.TxHash = t.Hash()
 	receipt.GasUsed = new(big.Int).Set(gas)
 	// if the transaction created a contract, store the creation address in the receipt.

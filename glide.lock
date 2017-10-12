@@ -1,23 +1,25 @@
-hash: 5eaec0f429c17c1d6e56c52ae46d6d2e895e0508581c550ed40831b38631cc30
-updated: 2017-10-11T09:10:31.802063305+01:00
+hash: 9dd44b98800bfb7ef85ce57a0ac1523c0925d1fb7fd15ccac66147ec8b410077
+updated: 2017-10-12T09:55:33.689796757+01:00
 imports:
 - name: bitbucket.org/mosaicnet/babble
-  version: 0876a1660d4b0610fb1a96c248a74749090d948f
+  version: 7a41354991bbae5650c59725fca6f4f0d9165862
   vcs: git
   subpackages:
   - proxy/babble
 - name: github.com/aristanetworks/goarista
-  version: fea55316ec360aac14580a95260a0a0553ce69ef
+  version: 34c98d5e5f9b0c0a627fb48fd28ec6392dae5dbf
   subpackages:
   - monotime
 - name: github.com/btcsuite/btcd
-  version: 4803a8291c92a1d2d41041b942a9a9e37deab065
+  version: b8df516b4b267acf2de46be593a9d948d1d2c420
   subpackages:
   - btcec
+- name: github.com/btcsuite/fastsha256
+  version: 637e656429416087660c84436a2a035d69d54e2e
 - name: github.com/edsrzf/mmap-go
   version: 0bce6a6887123b67a60366d2c9fe2dfb74289d2e
 - name: github.com/ethereum/go-ethereum
-  version: cf87713dd42162861b7ed227f79f0638a33571df
+  version: 6c6c7b2af3efdad4d2f64f70f3a724af434bbcd2
   subpackages:
   - accounts
   - accounts/abi
@@ -35,6 +37,7 @@ imports:
   - core/types
   - core/vm
   - crypto
+  - crypto/bn256
   - crypto/randentropy
   - crypto/secp256k1
   - crypto/sha3
@@ -47,31 +50,33 @@ imports:
   - rpc
   - trie
 - name: github.com/go-stack/stack
-  version: 817915b46b97fd7bb80e8ab6b69f01a53ac3eebf
+  version: 100eb0c0a9c5b306ca2fb4f165df21d80ada4b82
 - name: github.com/golang/snappy
   version: 553a641470496b2327abcac10b36396bd98e45c9
 - name: github.com/gorilla/context
   version: 08b5f424b9271eedf6f9f0ce86cb9396ed337a42
 - name: github.com/gorilla/mux
-  version: 9bd9ff2d1d2a0660d35050674f2c3112547997af
+  version: 0eeaf8392f5b04950925b8a69fe70f110fa7cbfc
 - name: github.com/hashicorp/golang-lru
   version: 0a025b7e63adc15a622f29b0b2c4c3848243bbf6
   subpackages:
   - simplelru
 - name: github.com/pborman/uuid
-  version: e790cca94e6cc75c7064b1332e63811d4aae1a53
+  version: 5007efa264d92316c43112bc573e754bc889b7b1
 - name: github.com/rcrowley/go-metrics
   version: 1f30fe9094a513ce4c700b9a54458bbb0c96996c
   subpackages:
   - exp
 - name: github.com/rjeczalik/notify
-  version: 1aa3b9de8d8410413787ea2573433b6fed5f3685
+  version: 7e20c15e6693a7d6ad269a94b70ed68bc4a875a7
 - name: github.com/rs/cors
-  version: eabcc6af4bbe5ad3a949d36450326a2b0b9894b8
+  version: a62a804a8a009876ca59105f7899938a1349f4b3
+- name: github.com/rs/xhandler
+  version: ed27b6fd65218132ee50cd95f38474a3d8a2cd12
 - name: github.com/Sirupsen/logrus
-  version: 89742aefa4b206dcf400792f3bd35b542998eb3b
+  version: c078b1e43f58d563c74cebe63c85789e76ddb627
 - name: github.com/syndtr/goleveldb
-  version: b89cc31ef7977104127d34c1bd31ebd1a9db2199
+  version: 8c81ea47d4c41a385645e133e15510fc6a2a74b4
   subpackages:
   - leveldb
   - leveldb/cache
@@ -86,21 +91,20 @@ imports:
   - leveldb/table
   - leveldb/util
 - name: golang.org/x/crypto
-  version: 9419663f5a44be8b34ca85f08abc5fe1be11f8a3
+  version: c7af5bf2638a1164f2eb5467c39c6cffbd13a02e
   subpackages:
   - pbkdf2
   - ripemd160
   - scrypt
-  - ssh/terminal
 - name: golang.org/x/net
-  version: a04bdaca5b32abe1c069418fb7088ae607de5bd0
+  version: feeb485667d1fdabe727840fe00adc22431bc86e
   subpackages:
+  - context
   - websocket
 - name: golang.org/x/sys
-  version: ebfc5b4631820b793c9010c87fd8fef0f39eb082
+  version: e62c3de784db939836898e5c19ffd41bece347da
   subpackages:
   - unix
-  - windows
 - name: gopkg.in/fatih/set.v0
   version: 27c40922c40b43fe04554d8223a402af3ea333f3
 - name: gopkg.in/karalabe/cookiejar.v2
@@ -110,5 +114,5 @@ imports:
 - name: gopkg.in/natefinch/npipe.v2
   version: c1b8fa8bdccecb0b8db834ee0b92fdbcfa606dd6
 - name: gopkg.in/urfave/cli.v1
-  version: cfb38830724cc34fedffe9a2a29fb54fa9169cd1
+  version: 0bdeddeeb0f650497d603c4ad7b20cfe685682f6
 testImports: []

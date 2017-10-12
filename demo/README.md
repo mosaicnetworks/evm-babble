@@ -32,7 +32,7 @@ Node.js allows us to run javascript in the console.
 [...]/evm-babble/demo$ nvm install node stable
 # install js dependencies
 [...]/evm-babble/demo$ cd nodejs
-[...]/evm-babble/demo/nodejs$ npm install json-bigint solc web3@0.19.0
+[...]/evm-babble/demo/nodejs$ npm install minimist json-bigint solc web3@0.19.0
 ```
 ### Other
 
