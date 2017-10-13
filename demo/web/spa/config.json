@@ -1,0 +1,7 @@
+
+//this is a test file. It should be replace at runtime
+{
+    "id":1,
+    "babble_host":"172.77.5.1:80",
+    "evm_host":"172.77.5.5:8080"
+}

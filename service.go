@@ -112,12 +112,32 @@ func (m *Service) getState() (*State, error) {
 }
 
 func (m *Service) serveAPI() {
-	router := mux.NewRouter()
-	router.HandleFunc("/accounts", m.makeHandler(accountsHandler)).Methods("GET")
-	router.HandleFunc("/call", m.makeHandler(callHandler)).Methods("POST")
-	router.HandleFunc("/tx", m.makeHandler(transactionHandler)).Methods("POST")
-	router.HandleFunc("/tx/{tx_hash}", m.makeHandler(transactionReceiptHandler)).Methods("GET")
-	http.ListenAndServe(m.apiAddr, router)
+	r := mux.NewRouter()
+	r.HandleFunc("/accounts", m.makeHandler(accountsHandler)).Methods("GET")
+	r.HandleFunc("/call", m.makeHandler(callHandler)).Methods("POST")
+	r.HandleFunc("/tx", m.makeHandler(transactionHandler)).Methods("POST")
+	r.HandleFunc("/tx/{tx_hash}", m.makeHandler(transactionReceiptHandler)).Methods("GET")
+	http.Handle("/", &CORSServer{r})
+	http.ListenAndServe(m.apiAddr, nil)
+}
+
+type CORSServer struct {
+	r *mux.Router
+}
+
+func (s *CORSServer) ServeHTTP(rw http.ResponseWriter, req *http.Request) {
+	if origin := req.Header.Get("Origin"); origin != "" {
+		rw.Header().Set("Access-Control-Allow-Origin", origin)
+		rw.Header().Set("Access-Control-Allow-Methods", "POST, GET, OPTIONS, PUT, DELETE")
+		rw.Header().Set("Access-Control-Allow-Headers",
+			"Accept, Content-Type, Content-Length, Accept-Encoding, X-CSRF-Token, Authorization")
+	}
+	// Stop here if its Preflighted OPTIONS request
+	if req.Method == "OPTIONS" {
+		return
+	}
+	// Lets Gorilla work
+	s.r.ServeHTTP(rw, req)
 }
 
 func (m *Service) makeHandler(fn func(http.ResponseWriter, *http.Request, *Service)) http.HandlerFunc {

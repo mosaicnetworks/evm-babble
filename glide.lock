@@ -1,17 +1,17 @@
 hash: 9dd44b98800bfb7ef85ce57a0ac1523c0925d1fb7fd15ccac66147ec8b410077
-updated: 2017-10-12T16:31:54.247860933+01:00
+updated: 2017-10-13T17:20:37.806241864+01:00
 imports:
 - name: bitbucket.org/mosaicnet/babble
-  version: 0876a1660d4b0610fb1a96c248a74749090d948f
+  version: 842fac9151a086b3d46b5dcfded722d93a118825
   vcs: git
   subpackages:
   - proxy/babble
 - name: github.com/aristanetworks/goarista
-  version: fea55316ec360aac14580a95260a0a0553ce69ef
+  version: 555b95a71e7357b9b1f067a3ef62f01560c02f5b
   subpackages:
   - monotime
 - name: github.com/btcsuite/btcd
-  version: 64d60f2ef245fc7a5ea6de22c8368fa699f26f8c
+  version: fb43a179cb37713cb19f93c9b62d436385edbc87
   subpackages:
   - btcec
 - name: github.com/edsrzf/mmap-go
@@ -98,7 +98,7 @@ imports:
   subpackages:
   - websocket
 - name: golang.org/x/sys
-  version: ebfc5b4631820b793c9010c87fd8fef0f39eb082
+  version: 686000749eaec0b8855b8eef5336cf63899fe51d
   subpackages:
   - unix
   - windows

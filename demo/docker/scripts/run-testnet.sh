@@ -31,4 +31,10 @@ do
     --api_addr="172.77.5.$(($N+$i)):8080"
     docker cp $MPWD/conf/node$i/eth client$i:/.evm-babble
     docker start client$i
+
+    docker create --name=web$i --net=babblenet --ip=172.77.5.$(($N+$N+$i)) httpd:alpine
+    docker cp ../web/spa/. web$i:/usr/local/apache2/htdocs/
+    docker cp $MPWD/conf/node$i/web/config.json web$i:/usr/local/apache2/htdocs/
+    docker start web$i
+
 done
