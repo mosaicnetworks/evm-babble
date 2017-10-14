@@ -44,6 +44,13 @@ resource "aws_security_group" "babblesec" {
     }
     
     ingress {
+        from_port = 80
+        to_port = 80
+        protocol = "tcp"
+        cidr_blocks = ["0.0.0.0/0"]
+    }
+
+    ingress {
         from_port = 8080
         to_port = 8080
         protocol = "tcp"
@@ -90,8 +97,8 @@ resource "aws_security_group" "babblesec" {
 resource "aws_instance" "server" {
   count = "${var.servers}"
   
-  //custom ami with ubuntu + babble + evm-babble
-  ami = "ami-aabdafce" 
+  //custom ami with ubuntu + babble + evm-babble + httpd
+  ami = "ami-6e564b0a" 
   instance_type = "t2.micro"
 
   subnet_id = "${aws_subnet.babblenet.id}"
@@ -115,7 +122,25 @@ resource "aws_instance" "server" {
   }
 
   provisioner "local-exec" {
+    command = "mkdir -p conf/node${count.index +1}/web && ./scripts/build-web-config.sh ${count.index +1} ${self.public_ip} 8080 9090 conf/node${count.index +1}/web/config.json"
+  }  
+
+  provisioner "file" {
+    source      = "../web/spa"
+    destination = "web" 
+  }
+
+  provisioner "file" {
+    source      = "conf/node${count.index +1}/web/config.json"
+    destination = "web/config.json"
+  }
+
+  provisioner "local-exec" {
     command = "echo ${self.private_ip} ${self.public_ip}  >> ips.dat"
+  }
+
+   provisioner "remote-exec" {
+    inline = ["sudo cp -r web/* /var/www/html"]
   }
 
   #Instance tags

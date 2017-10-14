@@ -12,4 +12,5 @@ demo/terraform/terraform.tfstate*
 demo/terraform/secret.tfvars
 demo/terraform/conf
 demo/terraform/ips.dat
+demo/terraform/.terraform
 
