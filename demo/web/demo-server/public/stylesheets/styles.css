@@ -1,0 +1,155 @@
+* {
+	margin:0;
+	padding:0;
+}
+
+body{
+	font: normal 16px Arial, Helvetica, sans-serif;
+}
+
+h1, h3{
+	font: normal 24px 'Open Sans', Arial, Helvetica, sans-serif;
+}
+
+/*-----------------
+	The Header
+------------------*/
+
+header {
+	position: fixed;
+	top: 0;
+	left:0;
+	right:0;
+
+	height: 40px;
+	z-index: 100;
+
+	background-color: #282b2c;
+	padding: 20px 40px;
+	color: #fff;
+	box-shadow: 0px 3px 2px rgba(0, 0, 0, 0.1);
+}
+
+header a {
+	color: #ffffff;
+	text-decoration: none;
+}
+
+header h2.tzine{
+	float: right;
+	opacity:0.9;
+}
+
+header h2.tzine:hover{
+	opacity:1;
+}
+
+header h2.tzine a{
+	font-size: 13px;
+	text-transform: uppercase;
+	display: inline-block;
+	padding: 12px 18px;
+	border-radius: 3px;
+	background-color: #5895DB;
+}
+
+
+@media (max-width: 500px){
+
+	header {
+		padding: 20px 15px;
+	}
+
+	header h1{
+		font-size: 24px;
+		margin: 0;
+	}
+
+}
+
+/*-----------------
+	Main Content
+------------------*/
+
+
+.main-content{
+	box-sizing: border-box;
+	margin: 125px auto 60px;
+	padding: 0 40px;
+}
+
+.main-content h3{
+	font-size: 28px;
+	color:  #5a96b9;
+	padding-bottom: 20px;
+}
+
+@media (max-width: 600px){
+
+	.main-content{
+		margin: 45px auto;
+		padding: 0 25px;
+	}
+
+}
+
+/*	Accounts List	*/
+
+.accounts-list{
+	list-style:none;
+	max-width: 1500px;
+	padding: 0;
+}
+
+.accounts-list > li{
+	box-sizing:border-box;
+	text-align:left;
+	font:normal 12px sans-serif;
+
+	background-color:#ffffff;
+	border:1px solid #dbe3e7;
+	border-radius: 3px;
+	box-shadow: 1px 3px 1px rgba(0, 0, 0, 0.08);
+
+	margin: 0 12px 14px 0;
+	padding: 25px;
+}
+
+/* Babble Stats */
+
+.babble-stats{
+	box-sizing:border-box;
+	text-align:left;
+	font:normal 12px sans-serif;
+
+	background-color:#ffffff;
+	border:1px solid #dbe3e7;
+	border-radius: 3px;
+	box-shadow: 1px 3px 1px rgba(0, 0, 0, 0.08);
+
+	margin: 0 12px 14px 0;
+	padding: 25px;
+}
+
+/*---------------------------
+	Error Page
+----------------------------*/
+
+.error{
+	opacity: 0;
+	transition: 0.6s;
+	pointer-events: none;
+	position: absolute;
+	left: 0;
+	top: 100px;
+	width: 100%;
+}
+
+.error.visible{
+	opacity: 1;
+}
+
+.error h3{
+	font-size: 40px;
+}
+
