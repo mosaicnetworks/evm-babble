@@ -5,6 +5,7 @@ var router = express.Router();
 
 
 request = function(options, callback) {
+  console.log('request options', JSON.stringify(options))
   return http.request(options, (resp) => {
       let data = '';
       
@@ -21,10 +22,10 @@ request = function(options, callback) {
 }
 
 // class methods
-getAccounts = function(host, port) {
+getAccounts = function(h, p) {
   var options = {
-      host: host,
-      port: port,
+      host: h,
+      port: p,
       path: '/accounts',
       method: 'GET'
     };
@@ -36,10 +37,10 @@ getAccounts = function(host, port) {
   })
 }  
 
-getStats = function(host, port) {
+getStats = function(h, p) {
   var options = {
-    host: host,
-    port: port,
+    host: h,
+    port: p,
     path: '/Stats',
     method: 'GET'
   };
@@ -53,14 +54,16 @@ getStats = function(host, port) {
 
 /* GET home page. */
 router.get('/', function(req, res, next) {
+  console.log('config', JSON.stringify(req.config))
+  
   content = {
     id: req.config.id,
   }
-
+  
   getAccounts(req.config.evm_host, req.config.evm_port)
   .then((data) => {
       console.log('accounts', data)
-      content.accounts = JSONbig.parse(data)
+      content.accounts = JSONbig.parse(data).Accounts
   })
   .then(() => getStats(req.config.babble_host, req.config.babble_port))
   .then((stats) => {

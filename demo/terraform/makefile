@@ -9,6 +9,7 @@ conf:
 
 create:
 	rm -f ips.dat
+	rsync -av --exclude='node_modules' ../web/demo-server/ ../web/demo-server-light
 	terraform apply -var-file=secret.tfvars -var "servers=$(nodes)"	
 
 start:

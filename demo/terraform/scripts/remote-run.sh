@@ -24,4 +24,6 @@ ssh -q -i babble.pem -o "UserKnownHostsFile /dev/null" -o "StrictHostKeyChecking
     --proxy_addr=$private_ip:1339 \
     --babble_addr=$private_ip:1338\
     --api_addr=$private_ip:9090 > evm_logs 2>&1 &
+
+    nohup sh -c 'cd demo-server && export PORT=80 && sudo -E npm start > ../web_logs 2>&1 &'
 EOF

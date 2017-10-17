@@ -18,8 +18,10 @@ do
     file=$dest/config.json
     echo "{" > $file 
     printf "\t\"id\":%d,\n" $i >> $file
-    printf "\t\"babble_host\":\"%s:%s\",\n" $IPBASE$i $BABBLE_PORT >> $file
-    printf "\t\"evm_host\":\"%s:%s\"\n" $IPBASE$(($i+$N)) $EVM_PORT >> $file
+    printf "\t\"babble_host\":\"%s\",\n" $IPBASE$i >> $file
+    printf "\t\"babble_port\":\"%s\",\n" $BABBLE_PORT >> $file
+    printf "\t\"evm_host\":\"%s\",\n" $IPBASE$(($i+$N)) >> $file
+    printf "\t\"evm_port\":\"%s\"\n" $EVM_PORT >> $file 
     echo "}" >> $file 
 done
 

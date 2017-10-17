@@ -22,19 +22,19 @@ do
     --proxy_addr="172.77.5.$i:1338" \
     --client_addr="172.77.5.$(($N+$i)):1339" \
     --service_addr="172.77.5.$i:80"
-    docker cp $MPWD/conf/node$i/babble node$i:/.babble
+    docker cp conf/node$i/babble node$i:/.babble
     docker start node$i
 
     docker create --name=client$i --net=babblenet --ip=172.77.5.$(($N+$i)) evmbabble \
-    --proxy_addr="172.77.5.$(($N+$i)):1339" \
+    --proxy_addr="0.0.0.0:1339" \
     --babble_addr="172.77.5.$i:1338" \
-    --api_addr="172.77.5.$(($N+$i)):8080"
-    docker cp $MPWD/conf/node$i/eth client$i:/.evm-babble
+    --api_addr="0.0.0.0:8080"
+    docker cp conf/node$i/eth client$i:/.evm-babble
     docker start client$i
 
-    docker create --name=web$i --net=babblenet --ip=172.77.5.$(($N+$N+$i)) httpd:alpine
-    docker cp ../web/spa/. web$i:/usr/local/apache2/htdocs/
-    docker cp $MPWD/conf/node$i/web/config.json web$i:/usr/local/apache2/htdocs/
+    docker create --name=web$i --net=babblenet --ip=172.77.5.$(($N+$N+$i)) web
+    docker cp ../web/demo-server/. web$i:/src
+    docker cp conf/node$i/web/config.json web$i:/src/config
     docker start web$i
 
 done

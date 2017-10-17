@@ -13,7 +13,9 @@ FILE=${5:-config.json}
 
 echo "{" > $FILE
 printf "\t\"id\":%d,\n" $ID >> $FILE
-printf "\t\"babble_host\":\"%s:%s\",\n" $IP $BABBLE_PORT >> $FILE
-printf "\t\"evm_host\":\"%s:%s\"\n" $IP $EVM_PORT >> $FILE
+printf "\t\"babble_host\":\"%s\",\n" $IP >> $FILE
+printf "\t\"babble_port\":\"%s\",\n" $BABBLE_PORT >> $FILE
+printf "\t\"evm_host\":\"%s\",\n" $IP >> $FILE
+printf "\t\"evm_port\":\"%s\"\n" $EVM_PORT >> $FILE
 echo "}" >> $FILE
 

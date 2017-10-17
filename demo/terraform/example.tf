@@ -97,8 +97,8 @@ resource "aws_security_group" "babblesec" {
 resource "aws_instance" "server" {
   count = "${var.servers}"
   
-  //custom ami with ubuntu + babble + evm-babble + httpd
-  ami = "ami-6e564b0a" 
+  //custom ami with ubuntu + babble + evm-babble + node.js + 80->3000
+  ami = "ami-96617cf2" 
   instance_type = "t2.micro"
 
   subnet_id = "${aws_subnet.babblenet.id}"
@@ -126,21 +126,21 @@ resource "aws_instance" "server" {
   }  
 
   provisioner "file" {
-    source      = "../web/spa"
-    destination = "web" 
-  }
-
+    source      = "../web/demo-server-light" #without node_modules
+    destination = "demo-server" 
+  }     
+ 
   provisioner "file" {
     source      = "conf/node${count.index +1}/web/config.json"
-    destination = "web/config.json"
+    destination = "demo-server/config/config.json"
+  }
+ 
+ provisioner "remote-exec" {
+    inline = ["cd demo-server && npm install"]
   }
 
   provisioner "local-exec" {
     command = "echo ${self.private_ip} ${self.public_ip}  >> ips.dat"
-  }
-
-   provisioner "remote-exec" {
-    inline = ["sudo cp -r web/* /var/www/html"]
   }
 
   #Instance tags
