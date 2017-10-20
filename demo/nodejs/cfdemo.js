@@ -137,6 +137,18 @@ Contract.prototype.compile = function() {
     this.w3 = web3.eth.contract(JSONbig.parse(this.abi)).at('');
 }
 
+Contract.prototype.encodeConstructorParams = function(params) {
+        return this.w3.abi.filter(function (json) {
+            return json.type === 'constructor' && json.inputs.length === params.length;
+        }).map(function (json) {
+            return json.inputs.map(function (input) {
+                return input.type;
+            });
+        }).map(function (types) {
+            return coder.encodeParams(types, params);
+        })[0] || '';
+}
+
 Contract.prototype.parseOutput = function(funcName, output) {
     funcDef = this.w3.abi.find(function (json) {
         return json.type === 'function' && json.name === funcName;
@@ -235,16 +247,19 @@ transfer = function(amount) {
     })
 }
 
-deployContract = function() {
+deployContract = function(wei_goal) {
     cfContract = new Contract('../nodejs/crowd-funding.sol', 'CrowdFunding')
     cfContract.compile()
+
+    var constructorParams = cfContract.encodeConstructorParams(wei_goal)
 
     tx = {
         from: node1Accs[0].Address,
         gas: 1000000,
         gasPrice: 0,
-        data: cfContract.bytecode
+        data: cfContract.bytecode + constructorParams
     }
+
     stx = JSONbig.stringify(tx)
     log(FgMagenta, 'Sending Contract-Creation Tx: ' + stx)
     
@@ -267,49 +282,9 @@ deployContract = function() {
     })
 }
 
-//test and testAsync are specific to the legacyContract
-
-newCampaign = function(beneficiary, wei_goal) {
-    callData = cfContract.w3.newCampaign.getData(beneficiary, wei_goal);
-    log(FgMagenta, util.format('newCampaign(%s, %d) callData: %s', beneficiary, wei_goal, callData))
-
-    tx = {
-        from: node1Accs[0].Address,
-        gaz:3000000,
-        gazPrice:0,
-        value:0,
-        to: cfContract.address,
-        data: callData
-    }
-    stx = JSONbig.stringify(tx)
-    log(FgBlue, 'Sending Contract-Method Tx: ' + stx)
-    
-    return node1API.sendTx(stx).then( (res) => {
-        log(FgGreen, 'Response: ' + res)
-        txHash = JSONbig.parse(res).TxHash.replace("\"", "")
-        return txHash
-    })
-    .then( (txHash) => {
-        return sleep(2000).then(() => {
-            log(FgBlue, 'Requesting Receipt')
-            return node1API.getReceipt(txHash)
-        })
-    }) 
-    .then( (receipt) => {
-        log(FgGreen, 'Tx Receipt: ' + receipt)
-        
-        recpt = JSONbig.parse(receipt)
-        
-        logs = cfContract.parseLogs(recpt.logs)
-        logs.map( item => {
-            log(FgCyan, item.event + ': ' + JSONbig.stringify(item.args))
-        })
-    })
-}
-
-contribute = function(campaignID, wei_amount) {
-    callData = cfContract.w3.contribute.getData(campaignID);
-    log(FgMagenta, util.format('contribute(%d) callData: %s', campaignID, callData))
+contribute = function(wei_amount) {
+    callData = cfContract.w3.contribute.getData();
+    log(FgMagenta, util.format('contribute() callData: %s', callData))
 
     tx = {
         from: node1Accs[0].Address,
@@ -345,9 +320,9 @@ contribute = function(campaignID, wei_amount) {
     })
 }
 
-checkGoalReached = function(campaignID) {
-    callData = cfContract.w3.checkGoalReached.getData(campaignID);
-    log(FgMagenta, util.format('checkGoalReached(%d) callData: %s', campaignID , callData))
+checkGoalReached = function() {
+    callData = cfContract.w3.checkGoalReached.getData();
+    log(FgMagenta, util.format('checkGoalReached() callData: %s', callData))
 
     tx = {
         from: node1Accs[0].Address,
@@ -377,10 +352,9 @@ checkGoalReached = function(campaignID) {
 getAccounts()
 .then(() => { space(); return transfer(555) })
 .then(() => { space(); return getAccounts()})   
-.then(() => { space(); return deployContract()})
-.then(() => { space(); return newCampaign(node1Accs[0].Address, 500)})
-.then(() => { space(); return contribute(0, 499)})
-.then(() => { space(); return checkGoalReached(0)})
+.then(() => { space(); return deployContract(500)})
+.then(() => { space(); return contribute(499)})
+.then(() => { space(); return checkGoalReached()})
 .catch((err) => log(FgRed, err))
 
 //------------------------------------------------------------------------------
