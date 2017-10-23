@@ -9,5 +9,5 @@ go build --ldflags '-extldflags "-static"' -o ../bin/evm-babble/evmbabble ../../
 docker build --no-cache=true -t evmbabble ../bin/evm-babble/
 
 #build web
-cp ../web/demo-server/packages.json ../bin/web/
+cp ../web/demo-server/package.json ../bin/web/
 docker build --no-cache=true -t web ../bin/web/

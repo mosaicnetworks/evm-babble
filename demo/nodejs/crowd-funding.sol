@@ -22,6 +22,10 @@ contract CrowdFunding {
         uint amount
     );
 
+    event Settlement(
+        bool ok
+    );
+
     function CrowdFunding(uint goal) {
         // Creates new struct and saves in storage. We leave out the mapping type.
         campaign = Campaign({
@@ -36,15 +40,21 @@ contract CrowdFunding {
         NewContribution(campaign.beneficiary, msg.sender, msg.value);
     }
 
-    function checkGoalReached() returns (bool reached, address beneficiary, uint goal, uint amount) {
-        if (campaign.beneficiary == address(0)) {
-            return (false, address(0), 0, 0);
-        }
+    function checkGoalReached() constant returns (bool reached, address beneficiary, uint goal, uint amount) {
         if (campaign.amount < campaign.fundingGoal)
-            return (false, campaign.beneficiary,0 , 0);
-        uint am = campaign.amount;
-        campaign.amount = 0;
-        campaign.beneficiary.transfer(am);
-        return (true, campaign.beneficiary, campaign.fundingGoal, am);
+            return (false, campaign.beneficiary, campaign.fundingGoal , campaign.amount);
+        else 
+            return (true, campaign.beneficiary, campaign.fundingGoal , campaign.amount);
+    }
+
+    function settle() {
+        if (campaign.amount >= campaign.fundingGoal) {
+            uint am = campaign.amount;
+            campaign.amount = 0;
+            campaign.beneficiary.transfer(am);
+            Settlement(true);
+        } else {
+            Settlement(false);
+        }
     }
 }

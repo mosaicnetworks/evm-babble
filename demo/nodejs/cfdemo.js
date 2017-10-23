@@ -7,7 +7,9 @@ Web3 = require('web3')
 web3 = new Web3()
 SolidityFunction = require('web3/lib/web3/function.js');
 SolidityEvent = require('web3/lib/web3/event.js');
+coder = require('web3/lib/solidity/coder.js');
 argv = require('minimist')(process.argv.slice(2));
+prompt = require('prompt');
 //------------------------------------------------------------------------------
 //Console colors
 
@@ -24,8 +26,21 @@ log = function(color, text){
     console.log(color+text+'\x1b[0m');
 }
 
+step = function(message) {
+    console.log(FgWhite, '\n' +  message)
+    return new Promise((resolve) => {
+        prompt.get('PRESS ENTER', function(err, res){
+            resolve();
+        });
+    })  
+}
+
+explain = function(message) {
+    log(FgCyan, util.format('\nEXPLANATION: %s', message))
+}
+
 space = function(){
-    console.log('\n')
+    console.log('\n');
 }
 
 //------------------------------------------------------------------------------
@@ -36,8 +51,13 @@ function API(host, port) {
 }
 
 request = function(options, callback) {
-    log(FgYellow, options.method + options.path)
     return http.request(options, (resp) => {
+        log(FgYellow, util.format('%s %s:%s%s', 
+        options.method, 
+        options.host,
+        options.port,
+        options.path));
+
         let data = '';
         
         // A chunk of data has been recieved.
@@ -196,42 +216,55 @@ Contract.prototype.parseLogs = function(logs) {
 
 //..............................................................................
 
-console.log(argv)
-node1Host = argv.host1
-node2Host = argv.host2
-port = argv.port
+function DemoNode(name, host, port) {
+    this.name = name
+    this.api = new API(host, port)
+    this.accounts = {}
+}
 
-node1API = new API(node1Host, port)
-node2API = new API(node2Host, port)
+//------------------------------------------------------------------------------
 
-var node1Accs
-var node2Accs
+var demoNodes = []
 var cfContract
+
+init = function() {
+    console.log(argv)
+    var ipbase = argv.ipbase;
+    var port = argv.port;
+    var nodes = argv.nodes;
+    
+    return new Promise((resolve, reject) => {
+        for (i=1; i<=nodes; i++) {
+            demoNode = new DemoNode(
+                util.format('node%d', i),
+                util.format('%s.%d', ipbase,(nodes+i)), 
+                port);   
+            demoNodes.push(demoNode);
+        }
+        resolve()
+    });
+}
 
 getAccounts = function() {
     log(FgMagenta, 'Getting Accounts')
-    return node1API.getAccounts()
-    .then( (accs) =>  {
-        log(FgGreen, 'Node 1 Accounts: ' + accs)
-        node1Accs = JSONbig.parse(accs).Accounts
-    })
-    .then(() => node2API.getAccounts())
-    .then( (accs) =>  {
-        log(FgGreen, 'Node 2 Accounts: ' + accs)
-        node2Accs = JSONbig.parse(accs).Accounts
-    })
+    return Promise.all(demoNodes.map(function (node) {
+        return  node.api.getAccounts().then((accs) => {
+            log(FgGreen, util.format('%s accounts: %s', node.name, accs));
+            node.accounts = JSONbig.parse(accs).Accounts;
+        });
+    }));
 }
 
 transfer = function(amount) {
     tx = {
-        from: node1Accs[0].Address,
-        to: node2Accs[0].Address,
+        from: demoNodes[0].accounts[0].Address,
+        to: demoNodes[1].accounts[0].Address,
         value: amount
     }
     stx = JSONbig.stringify(tx)
     log(FgMagenta, 'Sending Transfer Tx: ' + stx)
     
-    return node1API.sendTx(stx).then( (res) => {
+    return demoNodes[0].api.sendTx(stx).then( (res) => {
         log(FgGreen, 'Response: ' + res)
         txHash = JSONbig.parse(res).TxHash.replace("\"", "")
         return txHash
@@ -239,7 +272,7 @@ transfer = function(amount) {
     .then( (txHash) => {
         return sleep(2000).then(() => {
             log(FgBlue, 'Requesting Receipt')
-            return node1API.getReceipt(txHash)
+            return demoNodes[0].api.getReceipt(txHash)
         })
     }) 
     .then( (receipt) => {
@@ -251,10 +284,10 @@ deployContract = function(wei_goal) {
     cfContract = new Contract('../nodejs/crowd-funding.sol', 'CrowdFunding')
     cfContract.compile()
 
-    var constructorParams = cfContract.encodeConstructorParams(wei_goal)
+    var constructorParams = cfContract.encodeConstructorParams([wei_goal])
 
     tx = {
-        from: node1Accs[0].Address,
+        from: demoNodes[0].accounts[0].Address,
         gas: 1000000,
         gasPrice: 0,
         data: cfContract.bytecode + constructorParams
@@ -263,7 +296,7 @@ deployContract = function(wei_goal) {
     stx = JSONbig.stringify(tx)
     log(FgMagenta, 'Sending Contract-Creation Tx: ' + stx)
     
-    return node1API.sendTx(stx).then( (res) => {
+    return demoNodes[0].api.sendTx(stx).then( (res) => {
         log(FgGreen, 'Response: ' + res)
         txHash = JSONbig.parse(res).TxHash.replace("\"", "")
         return txHash
@@ -271,7 +304,7 @@ deployContract = function(wei_goal) {
     .then( (txHash) => {
         return sleep(2000).then(() => {
             log(FgBlue, 'Requesting Receipt')
-            return node1API.getReceipt(txHash)
+            return demoNodes[0].api.getReceipt(txHash)
         })
     }) 
     .then( (receipt) => {
@@ -282,12 +315,12 @@ deployContract = function(wei_goal) {
     })
 }
 
-contribute = function(wei_amount) {
+contribute = function(demo_node, wei_amount) {
     callData = cfContract.w3.contribute.getData();
     log(FgMagenta, util.format('contribute() callData: %s', callData))
 
     tx = {
-        from: node1Accs[0].Address,
+        from: demo_node.accounts[0].Address,
         to: cfContract.address,
         gaz:1000000,
         gazPrice:0,
@@ -297,7 +330,7 @@ contribute = function(wei_amount) {
     stx = JSONbig.stringify(tx)
     log(FgBlue, 'Sending Contract-Method Tx: ' + stx)
     
-    return node1API.sendTx(stx).then( (res) => {
+    return demo_node.api.sendTx(stx).then( (res) => {
         log(FgGreen, 'Response: ' + res)
         txHash = JSONbig.parse(res).TxHash.replace("\"", "")
         return txHash
@@ -305,7 +338,7 @@ contribute = function(wei_amount) {
     .then( (txHash) => {
         return sleep(2000).then(() => {
             log(FgBlue, 'Requesting Receipt')
-            return node1API.getReceipt(txHash)
+            return demo_node.api.getReceipt(txHash)
         })
     }) 
     .then( (receipt) => {
@@ -325,7 +358,7 @@ checkGoalReached = function() {
     log(FgMagenta, util.format('checkGoalReached() callData: %s', callData))
 
     tx = {
-        from: node1Accs[0].Address,
+        from: demoNodes[0].accounts[0].Address,
         gaz:1000000,
         gazPrice:0,
         value:0,
@@ -334,7 +367,7 @@ checkGoalReached = function() {
     }
     stx = JSONbig.stringify(tx)
     log(FgBlue, 'Calling Contract Method: ' + stx)
-    return node1API.call(stx).then( (res) => {
+    return demoNodes[0].api.call(stx).then( (res) => {
         res = JSONbig.parse(res)
         log(FgBlue, 'res: ' + res.Data)
         hexRes = Buffer.from(res.Data).toString()
@@ -346,15 +379,107 @@ checkGoalReached = function() {
     })
 }
 
+settle = function() {
+    callData = cfContract.w3.settle.getData();
+    log(FgMagenta, util.format('settle() callData: %s', callData))
+
+    tx = {
+        from: demoNodes[0].accounts[0].Address,
+        to: cfContract.address,
+        gaz:1000000,
+        gazPrice:0,
+        value:0,
+        data: callData
+    }
+    stx = JSONbig.stringify(tx)
+    log(FgBlue, 'Sending Contract-Method Tx: ' + stx)
+    
+    return demoNodes[0].api.sendTx(stx).then( (res) => {
+        log(FgGreen, 'Response: ' + res)
+        txHash = JSONbig.parse(res).TxHash.replace("\"", "")
+        return txHash
+    })
+    .then( (txHash) => {
+        return sleep(2000).then(() => {
+            log(FgBlue, 'Requesting Receipt')
+            return demoNodes[0].api.getReceipt(txHash)
+        })
+    }) 
+    .then( (receipt) => {
+        log(FgGreen, 'Tx Receipt: ' + receipt)
+        
+        recpt = JSONbig.parse(receipt)
+        
+        logs = cfContract.parseLogs(recpt.logs)
+        logs.map( item => {
+            log(FgCyan, item.event + ': ' + JSONbig.stringify(item.args))
+        })
+    })
+}
+
 //------------------------------------------------------------------------------
 // DEMO
 
-getAccounts()
+prompt.start()
+prompt.message = ''
+prompt.delimiter =''
+
+init()
+
+.then(() => step("STEP 1) Get ETH Accounts"))
+.then(() => { space(); return getAccounts()})
+.then(() => explain("Each node controls 1 account which allows it to send and receive Ether.\n" + 
+"Notice that this is a readonly operation; no transaction was sent via Babble. \n" +
+"We just queried the State via the http api exposed by EVM-Babble."))
+
+.then(() => step("STEP 2) Send 555 wei from node1 to node2"))
 .then(() => { space(); return transfer(555) })
-.then(() => { space(); return getAccounts()})   
-.then(() => { space(); return deployContract(500)})
-.then(() => { space(); return contribute(499)})
+.then(() => explain("We created a transaction to send 555 wei from node1 to node2. \n" +
+"The transaction was sent to EVM-Babble which converted it into raw bytes and ran it through Babble for consensus ordering.\n" +
+"Babble fed it back into EVM-Babble which re-converted it into an EVM transaction and applied it to the State for the accounts to be updated."))
+
+.then(() => step("STEP 3) Check balances again"))
+.then(() => { space(); return getAccounts()})
+.then(() => explain("Notice how the balances of node1 and node2 have changed."))
+
+.then(() => step("STEP 4) Deploy a CrowdFunding SmartContract for 1000 wei"))
+.then(() => { space(); return deployContract(1000)})
+.then(() => explain("Here we compiled and deployed the CrowdFunding SmartContract. \n" +
+"The contract was written in the high-level Solidity language which compiles down to EVM bytecode.\n" +
+"To deploy the SmartContract we created an EVM transaction with a 'data' field containing the bytecode. \n" + 
+"After going through Babble consensus, the transaction is applied on every node, so every participant will run a copy \n" + 
+"of the same code with the same data.\n" +
+"The CrowdFunding SmartContract can receive contributions and will transfer the funds to the creator of the contract if \n" + 
+"and only if the funding goal is met. Please be advised that this SmartContract should not be used in production as it \n" + 
+"was just created for the demo and lacks critical functionnality for a proper crowd funding."))
+
+.then(() => step("STEP 5) Contribute 499 wei from node 2"))
+.then(() => { space(); return contribute(demoNodes[1], 499)})
+.then(() => explain("We created an EVM transaction to call the 'contribute' method of the SmartContract. \n" +
+"The 'value' field of the transaction is the amount that the caller is actually going to contribute. \n" + 
+"The operation would fail if the account did not have enough Ether. \n" +
+"As an execise you can check that the transaction was run through every Babble node and that node2's balance has changed."))
+
+.then(() => step("STEP 6) Check goal reached"))
 .then(() => { space(); return checkGoalReached()})
+.then(() => explain("Here we called another method of the SmartContract to check if the funding goal was met. \n" +
+"Since only 499 of 1000 were received, the answer is no."))
+
+.then(() => step("STEP 7) Contribute 501 wei from node 3"))
+.then(() => { space(); return contribute(demoNodes[2], 501)})
+
+.then(() => step("STEP 8) Check goal reached"))
+.then(() => { space(); return checkGoalReached()})
+.then(() => explain("This time the funding goal was reached."))
+
+.then(() => step("STEP 9) Settle"))
+.then(() => { space(); return settle()})
+.then(() => explain("The funds were transferred from the SmartContract to node1."))
+
+.then(() => step("STEP 10) Check balances again"))
+.then(() => { space(); return getAccounts()})
+.then(() => explain("nodes 2 and 3 spent 499 and 501 wei respectively while node1 received 1000 wei."))
+
 .catch((err) => log(FgRed, err))
 
 //------------------------------------------------------------------------------
