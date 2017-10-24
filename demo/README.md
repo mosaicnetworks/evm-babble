@@ -1,9 +1,9 @@
 # EVM-BABBLE DEMOS
-Deploying **evm-babble** and **babble** side-by-side
+Deploying **evm-babble** and **babble** side by side
 
 **The following scripts were only tested on Ubuntu 16.04**
 
-## Common Dependencies
+## Dependencies
 
 ### Geth
 
@@ -27,20 +27,18 @@ Node.js allows us to run javascript in the console.
 
 ```bash
 # install node version manager
-[...]/evm-babble/demo$ curl -o- https://raw.githubusercontent.com/creationix/nvm/v0.33.5/install.sh | bash
+curl -o- https://raw.githubusercontent.com/creationix/nvm/v0.33.5/install.sh | bash
 # use nvm to intall stable version of node
-[...]/evm-babble/demo$ nvm install node stable
-# install js dependencies
-[...]/evm-babble/demo$ cd nodejs
-[...]/evm-babble/demo/nodejs$ npm install minimist json-bigint solc web3@0.19.0
+nvm install node stable
 ```
-### Other
 
-The demo scripts use **jq** to extract data from JSON messages.
+## Demo
 
-```bash
-sudo apt-get install jq
-```
+The **demo** shows how one might setup a crowd funding campaign on a trusted  
+network of Babble nodes. We show how to use a Smart Contract on evm-babble to  
+distribute and automate the logic that will securely receive contributions for a  
+crowd funding campaign and transfer the funds to the beneficiary if and only if  
+the funding goal is met.
 
 ## Docker
 
@@ -51,21 +49,8 @@ Obviously this requires [Docker](https://docker.com). Follow the link to find in
 ```bash
 [...]/evm-babble/demo/docker$ make  # create testnet
 [...]/evm-babble/demo/docker$ make demo # run through a demo scenario
-[...]/evm-babble/demo/docker$ make jsdemo # run through another demo scenario
 [...]/evm-babble/demo/docker$ make stop # stop and remove all resources
 ```
-
-The **jsdemo** demonstrates the interaction with SmartContracts. It shows how to  
-deploy a SmartContract and call its methods.
-
-There are two types of methods:  
-- Constant methods that do not update the State. These can be called through the
-`/call` endpoint
-- Non-constant methods that update the State and rely on a transaction that needs  
-to be processed by Babble. These functions do not return a value directly but they  
-create EVM Logs which can be recovered in the transaction receipt.
-
-We recommend taking a look at ```nodejs/demo.js```
 
 ## AWS
 
@@ -103,7 +88,6 @@ instance. We then copy the resulting snapshot's ID into our Terraform scripts (e
 [...]/evm-babble/demo/terraform$ make demo #run a demo scenario
 # ssh into a node directly. From there you can look at logs or system resources
 [...]/evm-babble/demo/terraform$ ssh -i babble.pem ubuntu@[public ip] 
-[...]/evm-babble/demo/terraform$ make jsdemo #run another demo scenario
 [...]/evm-babble/demo/terraform$ make destroy #destroy resources
 ```
 

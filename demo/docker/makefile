@@ -20,11 +20,10 @@ watch:
 stop: 
 	./scripts/stop-testnet.sh
 
-demo:
-	./scripts/demo.sh $(nodes)
+demo: 
+	cd ../nodejs && \
+	npm install && \
+    node demo.js --ipbase='172.77.5' --port='8080' --nodes=$(nodes) --contract_file='crowd-funding.sol'
 
-jsdemo: 
-	node ../nodejs/cfdemo.js --ipbase='172.77.5' --port='8080' --nodes=$(nodes)
-
-.PHONY: up conf images start watch stop demo jsdemo
+.PHONY: up conf images start watch stop demo
 	

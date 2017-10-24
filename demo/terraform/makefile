@@ -25,9 +25,6 @@ watch:
 demo: 
 	./scripts/demo.sh
 
-jsdemo:
-	./scripts/jsdemo.sh
-
 stop: 
 ifdef index
 	awk 'FNR==$(index) {system("./scripts/remote-kill.sh "$$0" "$$1"")}' ips.dat 
@@ -38,5 +35,5 @@ endif
 destroy :
 	terraform destroy -var-file=secret.tfvars
 	
-.PHONY: up conf create start watch demo jsdemo stop destroy
+.PHONY: up conf create start watch demo stop destroy
 	
