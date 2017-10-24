@@ -3,7 +3,7 @@ package evmbabble
 import (
 	"time"
 
-	bproxy "bitbucket.org/mosaicnet/babble/proxy/babble"
+	bproxy "github.com/babbleio/babble/proxy/babble"
 	"github.com/Sirupsen/logrus"
 )
 

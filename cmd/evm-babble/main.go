@@ -10,7 +10,7 @@ import (
 
 	"fmt"
 
-	evmbabble "bitbucket.org/mosaicnet/evm-babble"
+	evmbabble "github.com/babbleio/evm-babble"
 	"github.com/Sirupsen/logrus"
 	"gopkg.in/urfave/cli.v1"
 )

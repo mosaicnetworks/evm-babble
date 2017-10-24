@@ -1,7 +1,7 @@
 hash: 9dd44b98800bfb7ef85ce57a0ac1523c0925d1fb7fd15ccac66147ec8b410077
 updated: 2017-10-14T10:24:34.419220507+01:00
 imports:
-- name: bitbucket.org/mosaicnet/babble
+- name: github.com/babbleio/babble
   version: 842fac9151a086b3d46b5dcfded722d93a118825
   vcs: git
   subpackages:

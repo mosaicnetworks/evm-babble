@@ -194,8 +194,9 @@ checkGoalReached = function(from) {
     return from.api.call(stx).then( (res) => {
         res = JSONbig.parse(res)
         log(FgBlue, 'res: ' + res.Data)
+        hexRes = Buffer.from(res.Data).toString()
         
-        unpacked = _cfContract.parseOutput('checkGoalReached', hexRes)
+        unpacked = _cfContract.parseOutput('checkGoalReached',hexRes)
 
         log(FgGreen, 'Parsed res: ' + unpacked.toString())
     })

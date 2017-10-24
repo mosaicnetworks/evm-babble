@@ -1,6 +1,6 @@
-package: bitbucket.org/mosaicnet/evm-babble
+package: github.com/babbleio/evm-babble
 import:
-- package: bitbucket.org/mosaicnet/babble
+- package: github.com/babbleio/babble
   vcs: git
   subpackages:
   - proxy/babble
