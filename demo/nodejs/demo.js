@@ -59,16 +59,15 @@ var _cfContract;
 
 init = function() {
     console.log(argv);
-    var ipbase = argv.ipbase;
+    var ips = argv.ips.split(",");
     var port = argv.port;
-    var nodes = argv.nodes;
     _contractFile = argv.contract_file
     
     return new Promise((resolve, reject) => {
-        for (i=1; i<=nodes; i++) {
+        for (i=0; i<ips.length; i++) {
             demoNode = new DemoNode(
-                util.format('node%d', i),
-                util.format('%s.%d', ipbase,(nodes+i)), 
+                util.format('node%d', i+1),
+                ips[i], 
                 port);   
             _demoNodes.push(demoNode);
         }
@@ -195,8 +194,8 @@ checkGoalReached = function(from) {
         res = JSONbig.parse(res)
         log(FgBlue, 'res: ' + res.Data)
         hexRes = Buffer.from(res.Data).toString()
-        
-        unpacked = _cfContract.parseOutput('checkGoalReached',hexRes)
+
+        unpacked = _cfContract.parseOutput('checkGoalReached', hexRes)
 
         log(FgGreen, 'Parsed res: ' + unpacked.toString())
     })
@@ -324,6 +323,4 @@ init()
 .catch((err) => log(FgRed, err))
 
 //------------------------------------------------------------------------------
-
-
 

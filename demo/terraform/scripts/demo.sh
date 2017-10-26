@@ -2,6 +2,7 @@
 
 set -eu
 
-ips=($(cat ips.dat | awk '{ print $2 }'))
+ips=($(cat ips.dat | awk '{ print $2 }' | paste -sd "," -))
 
-node ../nodejs/demo.js --host1=${ips[0]} --host2=${ips[1]} --port='9090' --contract_file='../nodejs/crowd-funding.sol'
+node ../nodejs/demo.js --ips=$ips --port='9090' --contract_file='../nodejs/crowd-funding.sol'
+

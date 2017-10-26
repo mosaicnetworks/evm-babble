@@ -21,9 +21,7 @@ stop:
 	./scripts/stop-testnet.sh
 
 demo: 
-	cd ../nodejs && \
-	npm install && \
-    node demo.js --ipbase='172.77.5' --port='8080' --nodes=$(nodes) --contract_file='crowd-funding.sol'
+	./scripts/demo.sh $(nodes) 8080 "../nodejs/crowd-funding.sol"
 
 .PHONY: up conf images start watch stop demo
 	
