@@ -14,8 +14,14 @@ for i in $(seq 1 $N)
 do
 	dest=$DEST/node$i/eth
 	mkdir -p $dest
-    geth -verbosity=1 --datadir=$dest --password=$PASS account new  | \
-    awk '{gsub("[{}]", "\""); print $2}'  >> $dest/addr
+    # use a Docker container to run the geth command that creates accounts. This
+	# saves us the trouble of installing geth locally
+    docker run --rm \
+		-u `id -u $USER` \
+		-v $(pwd)/$dest:/datadir \
+		-v $(pwd)/$PASS:/pwd.txt \
+		ethereum/client-go -verbosity=1 --datadir=/datadir --password=/pwd.txt account new  | \
+    		awk '{gsub("[{}]", "\""); print $2}'  >> $dest/addr
 done
 
 PFILE=$DEST/genesis.json

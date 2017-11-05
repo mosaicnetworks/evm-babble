@@ -1,0 +1,24 @@
+ <div>
+    <h3>Eth Accounts</h1>
+    <ul class="accounts-list">
+        {{#each accounts}}
+            <li>
+            <div>Address: {{Address}}</div>
+            <div>Balance: {{Balance}}</div>
+            </li>
+        {{/each}}
+    </ul>
+</div> 
+<div>
+    <h3>Babble Stats</h1>
+    <div class="babble-stats">
+        <div>babble id: {{stats.id}}</div>
+        <div>state: {{stats.state}}</div>            
+        <div>consensus events: {{stats.consensus_events}}</div>
+        <div>consensus transactions: {{stats.consensus_transactions}}</div>
+        <div>last consensus round: {{stats.last_consensus_round}}</div>
+        <div>events in last consensus round: {{stats.round_events}}</div>
+        <div>transaction pool: {{stats.transaction_pool}}</div>
+        <div>undetermined events: {{stats.undetermined_events}}</div>
+    </div>
+</div>     

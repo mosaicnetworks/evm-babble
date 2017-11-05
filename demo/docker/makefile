@@ -1,15 +1,15 @@
 nodes = 4
 
-up: conf images start watch
+up: conf start watch
+
+images :
+	cd ../../docker && make
 
 conf: 
 	rm -rf conf
 	./scripts/build-eth-conf.sh $(nodes)
 	./scripts/build-babble-conf.sh $(nodes)
 	./scripts/build-web-conf.sh $(nodes)
-
-images :
-	./scripts/images.sh
 
 start:
 	./scripts/run-testnet.sh $(nodes)
@@ -23,5 +23,5 @@ stop:
 demo: 
 	./scripts/demo.sh $(nodes) 8080 "../nodejs/crowd-funding.sol"
 
-.PHONY: up conf images start watch stop demo
+.PHONY: up images conf start watch stop demo
 	

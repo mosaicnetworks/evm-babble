@@ -1,15 +1,14 @@
-hash: 9dd44b98800bfb7ef85ce57a0ac1523c0925d1fb7fd15ccac66147ec8b410077
-updated: 2017-10-14T10:24:34.419220507+01:00
+hash: 766cdf3b7b2d5d35785c9c2b833382fd3b6557d98290501d11c6098ab390a2fb
+updated: 2017-11-04T18:46:03.400675672+01:00
 imports:
-- name: github.com/babbleio/babble
-  version: 842fac9151a086b3d46b5dcfded722d93a118825
-  vcs: git
-  subpackages:
-  - proxy/babble
 - name: github.com/aristanetworks/goarista
   version: 555b95a71e7357b9b1f067a3ef62f01560c02f5b
   subpackages:
   - monotime
+- name: github.com/babbleio/babble
+  version: 842fac9151a086b3d46b5dcfded722d93a118825
+  subpackages:
+  - proxy/babble
 - name: github.com/btcsuite/btcd
   version: fb43a179cb37713cb19f93c9b62d436385edbc87
   subpackages:
@@ -54,7 +53,7 @@ imports:
 - name: github.com/gorilla/context
   version: 08b5f424b9271eedf6f9f0ce86cb9396ed337a42
 - name: github.com/gorilla/mux
-  version: 9bd9ff2d1d2a0660d35050674f2c3112547997af
+  version: 24fca303ac6da784b9e8269f724ddeb0b2eea5e7
 - name: github.com/hashicorp/golang-lru
   version: 0a025b7e63adc15a622f29b0b2c4c3848243bbf6
   subpackages:
@@ -70,7 +69,7 @@ imports:
 - name: github.com/rs/cors
   version: eabcc6af4bbe5ad3a949d36450326a2b0b9894b8
 - name: github.com/Sirupsen/logrus
-  version: 89742aefa4b206dcf400792f3bd35b542998eb3b
+  version: c078b1e43f58d563c74cebe63c85789e76ddb627
 - name: github.com/syndtr/goleveldb
   version: b89cc31ef7977104127d34c1bd31ebd1a9db2199
   subpackages:
@@ -92,16 +91,14 @@ imports:
   - pbkdf2
   - ripemd160
   - scrypt
-  - ssh/terminal
 - name: golang.org/x/net
   version: a04bdaca5b32abe1c069418fb7088ae607de5bd0
   subpackages:
   - websocket
 - name: golang.org/x/sys
-  version: 686000749eaec0b8855b8eef5336cf63899fe51d
+  version: d75a52659825e75fff6158388dddc6a5b04f9ba5
   subpackages:
   - unix
-  - windows
 - name: gopkg.in/fatih/set.v0
   version: 27c40922c40b43fe04554d8223a402af3ea333f3
 - name: gopkg.in/karalabe/cookiejar.v2
@@ -111,5 +108,5 @@ imports:
 - name: gopkg.in/natefinch/npipe.v2
   version: c1b8fa8bdccecb0b8db834ee0b92fdbcfa606dd6
 - name: gopkg.in/urfave/cli.v1
-  version: cfb38830724cc34fedffe9a2a29fb54fa9169cd1
+  version: 0bdeddeeb0f650497d603c4ad7b20cfe685682f6
 testImports: []

@@ -126,7 +126,7 @@ resource "aws_instance" "server" {
   }  
 
   provisioner "file" {
-    source      = "../web/demo-server-light" #without node_modules
+    source      = "../../ui/demo-server-light" #without node_modules
     destination = "demo-server" 
   }     
  

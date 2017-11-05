@@ -10,9 +10,11 @@ import (
 
 	"fmt"
 
-	evmbabble "github.com/babbleio/evm-babble"
 	"github.com/Sirupsen/logrus"
 	"gopkg.in/urfave/cli.v1"
+
+	"github.com/babbleio/babble/version"
+	"github.com/babbleio/evm-babble/proxy"
 )
 
 var (
@@ -52,15 +54,26 @@ func main() {
 	app := cli.NewApp()
 	app.Name = "evm-babble"
 	app.Usage = "Lightweight EVM app for Babble"
-	app.Flags = []cli.Flag{
-		DatadirFlag,
-		BabbleAddressFlag,
-		ProxyAddressFlag,
-		APIAddrFlag,
-		LogLevelFlag,
-		PwdFlag,
+	app.HideVersion = true
+	app.Commands = []cli.Command{
+		{
+			Name:   "run",
+			Action: run,
+			Flags: []cli.Flag{
+				DatadirFlag,
+				BabbleAddressFlag,
+				ProxyAddressFlag,
+				APIAddrFlag,
+				LogLevelFlag,
+				PwdFlag,
+			},
+		},
+		{
+			Name:   "version",
+			Usage:  "Show version info",
+			Action: printVersion,
+		},
 	}
-	app.Action = run
 	app.Run(os.Args)
 }
 
@@ -81,7 +94,7 @@ func run(c *cli.Context) error {
 		"api_addr":    apiAddress,
 	}).Debug("RUN")
 
-	config := evmbabble.NewConfig(
+	config := proxy.NewConfig(
 		proxyAddress,
 		babbleAddress,
 		apiAddress,
@@ -89,13 +102,18 @@ func run(c *cli.Context) error {
 		pwdFile,
 		1*time.Second)
 
-	proxy, err := evmbabble.NewProxy(config, logger)
+	proxy, err := proxy.NewProxy(config, logger)
 	if err != nil {
 		return fmt.Errorf("Error building proxy: %s", err)
 	}
 
 	proxy.Run()
 
+	return nil
+}
+
+func printVersion(c *cli.Context) error {
+	fmt.Println(version.Version)
 	return nil
 }
 

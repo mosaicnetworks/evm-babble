@@ -1,11 +1,10 @@
 debug.test
 .vscode
 
+build
+
 vendor
 
-demo/bin/babble/babble
-demo/bin/evm-babble/evmbabble
-demo/bin/web/package.json
 demo/nodejs/node_modules
 demo/docker/conf
 demo/terraform/babble.pem
@@ -16,4 +15,7 @@ demo/terraform/ips.dat
 demo/terraform/.terraform
 demo/web/demo-server-light
 demo/web/demo-server/node_modules
+
+docker/evm-babble/evm-babble
+docker/evm-babble-ui/package.json
 

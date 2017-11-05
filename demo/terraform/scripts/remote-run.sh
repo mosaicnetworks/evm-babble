@@ -18,7 +18,7 @@ ssh -q -i babble.pem -o "UserKnownHostsFile /dev/null" -o "StrictHostKeyChecking
     --client_addr=$private_ip:1339 \
     --service_addr=0.0.0.0:8080 > babble_logs 2>&1 &
 
-    nohup /home/ubuntu/bin/evmbabble \
+    nohup /home/ubuntu/bin/evmbabble run \
     --datadir=/home/ubuntu/eth_conf \
     --pwd=/home/ubuntu/eth_conf/pwd.txt \
     --proxy_addr=$private_ip:1339 \

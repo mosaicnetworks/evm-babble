@@ -59,8 +59,8 @@ This will download all the depencies and put them in the vendor folder.
 
 ## Usage
 
-The application needs to be started side-by-side with a Babble node otherwise it  
-wont work. 
+The application needs to be started in conjunction with a Babble node otherwise it  
+wont work.
 
 The **babble_addr** option specifies the endpoint where the Babble node is listening  
 to the App. This corresponds to the **proxy_addr** flag used when starting Babble.

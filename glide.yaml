@@ -1,9 +1,5 @@
 package: github.com/babbleio/evm-babble
 import:
-- package: github.com/babbleio/babble
-  vcs: git
-  subpackages:
-  - proxy/babble
 - package: github.com/Sirupsen/logrus
 - package: github.com/ethereum/go-ethereum
   version: =1.7.0

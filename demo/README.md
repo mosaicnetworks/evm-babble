@@ -5,20 +5,6 @@ Deploying **evm-babble** and **babble** side by side
 
 ## Dependencies
 
-### Geth
-
-We use **Geth** to generate cryptographic key-pairs in a format readable by the  
-EVM. If you don't have it already installed visit [this page](https://github.com/ethereum/go-ethereum/wiki/Building-Ethereum) for instructions.  
-
-For Ubuntu users:  
-
-```bash
-sudo apt-get install software-properties-common
-sudo add-apt-repository -y ppa:ethereum/ethereum
-sudo apt-get update
-sudo apt-get install ethereum
-```
-
 ### Node.js
 
 As part of the demos, we use javascript to interact with Smart Contracts. This  
