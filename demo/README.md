@@ -33,9 +33,9 @@ Launch a set of Docker containers to setup a local evm-babble testnet.
 Obviously this requires [Docker](https://docker.com). Follow the link to find installation instructions.
 
 ```bash
-[...]/evm-babble/demo/docker$ make  # create testnet
-[...]/evm-babble/demo/docker$ make demo # run through a demo scenario
-[...]/evm-babble/demo/docker$ make stop # stop and remove all resources
+[...]/evm-babble/demo/demo-docker$ make  # create testnet
+[...]/evm-babble/demo/demo-docker$ make demo # run through a demo scenario
+[...]/evm-babble/demo/demo-docker$ make stop # stop and remove all resources
 ```
 
 ## AWS
@@ -70,10 +70,10 @@ instance. We then copy the resulting snapshot's ID into our Terraform scripts (e
 2. Use scripts to deploy the testnet and execute demos  
 
 ```bash
-[...]/evm-babble/demo/terraform$ make "nodes=12"
-[...]/evm-babble/demo/terraform$ make demo #run a demo scenario
+[...]/evm-babble/demo/demo-terraform$ make "nodes=12"
+[...]/evm-babble/demo/demo-terraform$ make demo #run a demo scenario
 # ssh into a node directly. From there you can look at logs or system resources
-[...]/evm-babble/demo/terraform$ ssh -i babble.pem ubuntu@[public ip] 
-[...]/evm-babble/demo/terraform$ make destroy #destroy resources
+[...]/evm-babble/demo/demo-terraform$ ssh -i babble.pem ubuntu@[public ip] 
+[...]/evm-babble/demo/demo-terraform$ make destroy #destroy resources
 ```
 

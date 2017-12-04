@@ -1,0 +1,7 @@
+{
+	"id":2,
+	"babble_host":"172.77.5.2",
+	"babble_port":"80",
+	"evm_host":"172.77.5.6",
+	"evm_port":"8080"
+}
