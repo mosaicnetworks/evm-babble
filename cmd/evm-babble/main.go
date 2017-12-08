@@ -48,6 +48,16 @@ var (
 		Usage: "Password file to unlock accounts",
 		Value: fmt.Sprintf("%s/pwd.txt", defaultDataDir()),
 	}
+	DatabaseFlag = cli.StringFlag{
+		Name:  "db",
+		Usage: "Database file",
+		Value: fmt.Sprintf("%s/chaindata", defaultDataDir()),
+	}
+	CacheFlag = cli.IntFlag{
+		Name:  "cache",
+		Usage: "Megabytes of memory allocated to internal caching (min 16MB / database forced)",
+		Value: 128,
+	}
 )
 
 func main() {
@@ -66,6 +76,8 @@ func main() {
 				APIAddrFlag,
 				LogLevelFlag,
 				PwdFlag,
+				DatabaseFlag,
+				CacheFlag,
 			},
 		},
 		{
@@ -86,12 +98,16 @@ func run(c *cli.Context) error {
 	proxyAddress := c.String(ProxyAddressFlag.Name)
 	apiAddress := c.String(APIAddrFlag.Name)
 	pwdFile := c.String(PwdFlag.Name)
+	databaseFile := c.String(DatabaseFlag.Name)
+	dbCache := c.Int(CacheFlag.Name)
 
 	logger.WithFields(logrus.Fields{
 		"datadir":     datadir,
 		"babble_addr": babbleAddress,
 		"proxy_addr":  proxyAddress,
 		"api_addr":    apiAddress,
+		"db":          databaseFile,
+		"cache":       dbCache,
 	}).Debug("RUN")
 
 	config := proxy.NewConfig(
@@ -100,6 +116,8 @@ func run(c *cli.Context) error {
 		apiAddress,
 		datadir,
 		pwdFile,
+		databaseFile,
+		dbCache,
 		1*time.Second)
 
 	proxy, err := proxy.NewProxy(config, logger)

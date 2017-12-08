@@ -4,6 +4,7 @@ import (
 	"bytes"
 	"math/big"
 	"sync"
+	"syscall"
 
 	"github.com/Sirupsen/logrus"
 	"github.com/ethereum/go-ethereum/common"
@@ -26,6 +27,7 @@ var (
 	txMetaSuffix   = []byte{0x01}
 	receiptsPrefix = []byte("receipts-")
 	MIPMapLevels   = []uint64{1000000, 500000, 100000, 50000, 1000}
+	headTxKey      = []byte("LastTx")
 )
 
 type State struct {
@@ -41,14 +43,14 @@ type State struct {
 	logger *logrus.Logger
 }
 
-func NewState(logger *logrus.Logger) (*State, error) {
+func NewState(logger *logrus.Logger, dbFile string, dbCache int) (*State, error) {
 
-	db, err := ethdb.NewMemDatabase() //ephemeral database
+	handles, err := getFdLimit()
 	if err != nil {
 		return nil, err
 	}
 
-	ethState, err := ethState.New(common.Hash{}, ethState.NewDatabase(db))
+	db, err := ethdb.NewLDBDatabase(dbFile, dbCache, handles)
 	if err != nil {
 		return nil, err
 	}
@@ -56,14 +58,27 @@ func NewState(logger *logrus.Logger) (*State, error) {
 	s := new(State)
 	s.logger = logger
 	s.db = db
-	s.statedb = ethState
 	s.signer = ethTypes.NewEIP155Signer(chainID)
 	s.chainConfig = params.ChainConfig{ChainId: chainID}
 	s.vmConfig = vm.Config{Tracer: vm.NewStructLogger(nil)}
 
-	s.resetWAS(ethState.Copy())
+	if err := s.InitState(); err != nil {
+		return nil, err
+	}
+
+	s.resetWAS()
 
 	return s, nil
+}
+
+// getFdLimit retrieves the number of file descriptors allowed to be opened by this
+// process.
+func getFdLimit() (int, error) {
+	var limit syscall.Rlimit
+	if err := syscall.Getrlimit(syscall.RLIMIT_NOFILE, &limit); err != nil {
+		return 0, err
+	}
+	return int(limit.Cur), nil
 }
 
 //------------------------------------------------------------------------------
@@ -122,11 +137,13 @@ func (s *State) AppendTx(tx []byte) error {
 		GetHash:     func(uint64) common.Hash { return common.Hash{} },
 		// Message information
 		Origin:      msg.From(),
+		GasLimit:    msg.Gas(),
 		GasPrice:    msg.GasPrice(),
 		BlockNumber: big.NewInt(0), //the vm has a dependency on this..
 	}
 
-	//XXX
+	//Prepare the ethState with transaction Hash so that it can be used in emitted
+	//logs
 	s.was.ethState.Prepare(t.Hash(), common.Hash{}, 0)
 
 	// The EVM should never be reused and is not thread safe.
@@ -189,12 +206,13 @@ func (s *State) commit() error {
 	// with the latest eth state
 	s.statedb = s.was.ethState
 	s.logger.WithField("root", root.Hex()).Debug("Committed")
-	s.resetWAS(s.statedb.Copy())
+	s.resetWAS()
 
 	return nil
 }
 
-func (s *State) resetWAS(state *ethState.StateDB) {
+func (s *State) resetWAS() {
+	state := s.statedb.Copy()
 	s.was = &WriteAheadState{
 		db:           s.db,
 		ethState:     state,
@@ -207,6 +225,36 @@ func (s *State) resetWAS(state *ethState.StateDB) {
 }
 
 //------------------------------------------------------------------------------
+
+func (s *State) InitState() error {
+
+	rootHash := common.Hash{}
+
+	//get head transaction hash
+	headTxHash := common.Hash{}
+	data, _ := s.db.Get(headTxKey)
+	if len(data) != 0 {
+		headTxHash = common.BytesToHash(data)
+		s.logger.WithField("head_tx", headTxHash.Hex()).Debug("Loading state from existing head")
+		//get head tx receipt
+		headTxReceipt, err := s.GetReceipt(headTxHash)
+		if err != nil {
+			s.logger.WithError(err).Error("Head transaction receipt missing")
+			return err
+		}
+
+		//extract root from receipt
+		if len(headTxReceipt.PostState) != 0 {
+			rootHash = common.BytesToHash(headTxReceipt.PostState)
+			s.logger.WithField("root", rootHash.Hex()).Debug("Head transaction root")
+		}
+	}
+
+	//use root to initialise the state
+	var err error
+	s.statedb, err = ethState.New(rootHash, ethState.NewDatabase(s.db))
+	return err
+}
 
 func (s *State) CreateAccounts(accounts bcommon.AccountMap) error {
 	s.commitMutex.Lock()

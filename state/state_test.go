@@ -6,6 +6,7 @@ import (
 	"math/big"
 	"os"
 	"path/filepath"
+	"reflect"
 	"strings"
 	"testing"
 
@@ -20,24 +21,38 @@ import (
 	bcommon "github.com/babbleio/evm-babble/common"
 )
 
+var (
+	_defaultValue    = big.NewInt(0)
+	_defaultGas      = big.NewInt(1000000)
+	_defaultGasPrice = big.NewInt(0)
+)
+
 type Test struct {
 	dataDir string
 	pwdFile string
+	dbFile  string
+	cache   int
 
 	keyStore *keystore.KeyStore
 	state    *State
 	logger   *logrus.Logger
 }
 
-func NewTest(dataDir, pwdFile string, logger *logrus.Logger) *Test {
-	state, err := NewState(logger)
+func NewTest(dataDir string, logger *logrus.Logger, t *testing.T) *Test {
+	pwdFile := filepath.Join(dataDir, "pwd.txt")
+	dbFile := filepath.Join(dataDir, "chaindata")
+	cache := 128
+
+	state, err := NewState(logger, dbFile, cache)
 	if err != nil {
-		os.Exit(1)
+		t.Fatal(err)
 	}
 
 	return &Test{
 		dataDir: dataDir,
 		pwdFile: pwdFile,
+		dbFile:  dbFile,
+		cache:   cache,
 		state:   state,
 		logger:  logger,
 	}
@@ -126,7 +141,7 @@ func (test *Test) Init() error {
 
 func (test *Test) prepareTransaction(from, to *accounts.Account,
 	value, gas, gasPrice *big.Int,
-	data string) (*ethTypes.Transaction, error) {
+	data []byte) (*ethTypes.Transaction, error) {
 
 	nonce := test.state.GetNonce(from.Address)
 
@@ -136,14 +151,14 @@ func (test *Test) prepareTransaction(from, to *accounts.Account,
 			value,
 			gas,
 			gasPrice,
-			common.FromHex(data))
+			data)
 	} else {
 		tx = ethTypes.NewTransaction(nonce,
 			to.Address,
 			value,
 			gas,
 			gasPrice,
-			common.FromHex(data))
+			data)
 	}
 
 	signer := ethTypes.NewEIP155Signer(big.NewInt(1))
@@ -160,9 +175,53 @@ func (test *Test) prepareTransaction(from, to *accounts.Account,
 	return signedTx, nil
 }
 
+func (test *Test) deployContract(from accounts.Account, contract *Contract, t *testing.T) {
+
+	//Create Contract transaction
+	tx, err := test.prepareTransaction(&from,
+		nil,
+		_defaultValue,
+		_defaultGas,
+		_defaultGasPrice,
+		common.FromHex(contract.code))
+
+	if err != nil {
+		t.Fatal(err)
+	}
+
+	//convert to raw bytes
+	data, err := rlp.EncodeToBytes(tx)
+	if err != nil {
+		t.Fatal(err)
+	}
+
+	//try to append tx
+	err = test.state.AppendTx(data)
+	if err != nil {
+		t.Fatal(err)
+	}
+
+	err = test.state.Commit()
+	if err != nil {
+		t.Fatal(err)
+	}
+
+	receipt, err := test.state.GetReceipt(tx.Hash())
+	if err != nil {
+		t.Fatal(err)
+	}
+
+	contract.address = receipt.ContractAddress
+}
+
 //------------------------------------------------------------------------------
 func TestTransfer(t *testing.T) {
-	test := NewTest("test_data/eth", "test_data/eth/pwd.txt", bcommon.NewTestLogger(t))
+
+	os.RemoveAll("test_data/eth/chaindata")
+	defer os.RemoveAll("test_data/eth/chaindata")
+
+	test := NewTest("test_data/eth", bcommon.NewTestLogger(t), t)
+	defer test.state.db.Close()
 
 	err := test.Init()
 
@@ -185,7 +244,7 @@ func TestTransfer(t *testing.T) {
 		value,
 		gas,
 		gasPrice,
-		"")
+		[]byte{})
 
 	if err != nil {
 		t.Fatal(err)
@@ -230,11 +289,20 @@ type Contract struct {
 	address common.Address
 	code    string
 	abi     string
+	jsonABI abi.ABI
+}
+
+func (c *Contract) parseABI(t *testing.T) {
+	jABI, err := abi.JSON(strings.NewReader(c.abi))
+	if err != nil {
+		t.Fatal(err)
+	}
+	c.jsonABI = jABI
 }
 
 /*
 
-pragma solidity ^0.4.8;
+pragma solidity 0.4.8;
 
 contract Test {
 
@@ -243,7 +311,7 @@ contract Test {
    event LocalChange(uint);
 
    function test(uint i) constant returns (uint){
-        return i * 10;
+        return localI * i;
    }
 
    function testAsync(uint i) {
@@ -254,36 +322,64 @@ contract Test {
 
 */
 
-func dummyContract() Contract {
-	return Contract{
+func dummyContract() *Contract {
+	return &Contract{
 		name: "Test",
-		code: "60606040526001600055341561001457600080fd5b61011e806100236000396000f30060606040526000357c0100000000000000000000000000000000000000000000000000000000900463ffffffff16806329e99f07146046578063cb0d1c7614607a57600080fd5b3415605057600080fd5b60646004808035906020019091905050609a565b6040518082815260200191505060405180910390f35b3415608457600080fd5b6098600480803590602001909190505060a7565b005b6000600a82029050919050565b8060008082825401925050819055507ffa753cb3413ce224c9858a63f9d3cf8d9d02295bdb4916a594b41499014bb57f6000546040518082815260200191505060405180910390a1505600a165627a7a72305820e27a8acb83247c664faf3240a5e39317c5681583bdc0010b3213206189f623970029",
+		code: "6060604052600160005534610000575b6101168061001e6000396000f30060606040526000357c0100000000000000000000000000000000000000000000000000000000900463ffffffff16806329e99f07146046578063cb0d1c76146074575b6000565b34600057605e6004808035906020019091905050608e565b6040518082815260200191505060405180910390f35b34600057608c6004808035906020019091905050609d565b005b6000816000540290505b919050565b806000600082825401925050819055507ffa753cb3413ce224c9858a63f9d3cf8d9d02295bdb4916a594b41499014bb57f6000546040518082815260200191505060405180910390a15b505600a165627a7a723058203f0887849cabeb36c6f72cc345c5ff3521d889356357e6815dd8dbe9f7c41bbe0029",
 		abi:  "[{\"constant\":true,\"inputs\":[{\"name\":\"i\",\"type\":\"uint256\"}],\"name\":\"test\",\"outputs\":[{\"name\":\"\",\"type\":\"uint256\"}],\"payable\":false,\"type\":\"function\",\"stateMutability\":\"view\"},{\"constant\":false,\"inputs\":[{\"name\":\"i\",\"type\":\"uint256\"}],\"name\":\"testAsync\",\"outputs\":[],\"payable\":false,\"type\":\"function\",\"stateMutability\":\"nonpayable\"},{\"anonymous\":false,\"inputs\":[{\"indexed\":false,\"name\":\"\",\"type\":\"uint256\"}],\"name\":\"LocalChange\",\"type\":\"event\"}]",
 	}
 }
 
-func TestCreateContract(t *testing.T) {
-	test := NewTest("test_data/eth", "test_data/eth/pwd.txt", bcommon.NewTestLogger(t))
+func callDummyContractTest(test *Test, from accounts.Account, contract *Contract, expected *big.Int, t *testing.T) {
+	callData, err := contract.jsonABI.Pack("test", big.NewInt(10))
+	if err != nil {
+		t.Fatal(err)
+	}
 
-	err := test.Init()
+	callMsg := ethTypes.NewMessage(from.Address,
+		&contract.address,
+		0,
+		_defaultValue,
+		_defaultGas,
+		_defaultGasPrice,
+		callData,
+		false)
 
 	if err != nil {
 		t.Fatal(err)
 	}
 
-	from := test.keyStore.Accounts()[0]
+	res, err := test.state.Call(callMsg)
+	if err != nil {
+		t.Fatal(err)
+	}
+	t.Logf("call res: %v", res)
 
-	//Create Contract transaction
-	value := big.NewInt(0)
-	gas := big.NewInt(1000000)
-	gasPrice := big.NewInt(0)
+	var parsedRes *big.Int
+	err = contract.jsonABI.Unpack(&parsedRes, "test", res)
+	if err != nil {
+		t.Error(err)
+	}
+	t.Logf("parsed res: %v", parsedRes)
+
+	if parsedRes.Cmp(expected) != 0 {
+		t.Fatalf("Result should be %v, not %v", expected, parsedRes)
+	}
+
+}
+
+func callDummyContractTestAsync(test *Test, from accounts.Account, contract *Contract, t *testing.T) {
+	callData, err := contract.jsonABI.Pack("testAsync", big.NewInt(10))
+	if err != nil {
+		t.Fatal(err)
+	}
 
 	tx, err := test.prepareTransaction(&from,
-		nil,
-		value,
-		gas,
-		gasPrice,
-		dummyContract().code)
+		&accounts.Account{Address: contract.address},
+		_defaultValue,
+		_defaultGas,
+		_defaultGasPrice,
+		callData)
 
 	if err != nil {
 		t.Fatal(err)
@@ -311,92 +407,86 @@ func TestCreateContract(t *testing.T) {
 		t.Fatal(err)
 	}
 
-	contractAddress := receipt.ContractAddress
+	t.Log(receipt)
+}
 
-	code := test.state.statedb.GetCode(contractAddress)
+func TestCreateContract(t *testing.T) {
 
-	t.Log(common.ToHex(code))
+	os.RemoveAll("test_data/eth/chaindata")
+	defer os.RemoveAll("test_data/eth/chaindata")
 
-	abi, err := abi.JSON(strings.NewReader(dummyContract().abi))
+	test := NewTest("test_data/eth", bcommon.NewTestLogger(t), t)
+	defer test.state.db.Close()
+
+	err := test.Init()
+
 	if err != nil {
 		t.Fatal(err)
 	}
+
+	from := test.keyStore.Accounts()[0]
+
+	contract := dummyContract()
+
+	test.deployContract(from, contract, t)
+
+	contract.parseABI(t)
 
 	//call constant test method
-
-	callData, err := abi.Pack("test", big.NewInt(10))
-	if err != nil {
-		t.Fatal(err)
-	}
-
-	callMsg := ethTypes.NewMessage(from.Address,
-		&contractAddress,
-		0,
-		value,
-		gas,
-		gasPrice,
-		callData,
-		false)
-
-	if err != nil {
-		t.Fatal(err)
-	}
-
-	res, err := test.state.Call(callMsg)
-	if err != nil {
-		t.Fatal(err)
-	}
-
-	t.Log(res)
-
-	var parsedRes *big.Int
-	err = abi.Unpack(&parsedRes, "test", res)
-	if err != nil {
-		t.Error(err)
-	}
-
-	t.Log(parsedRes)
+	callDummyContractTest(test, from, contract, big.NewInt(10), t)
 
 	//execute state-altering testAsync method
+	callDummyContractTestAsync(test, from, contract, t)
 
-	callData2, err := abi.Pack("testAsync", big.NewInt(10))
-	if err != nil {
+	//call constant test method
+	callDummyContractTest(test, from, contract, big.NewInt(110), t)
+
+}
+
+func TestDB(t *testing.T) {
+
+	os.RemoveAll("test_data/eth/chaindata")
+	defer os.RemoveAll("test_data/eth/chaindata")
+
+	//initialise a fresh instance and commit stuff to the db
+	test := NewTest("test_data/eth", bcommon.NewTestLogger(t), t)
+	if err := test.Init(); err != nil {
 		t.Fatal(err)
 	}
 
-	tx2, err := test.prepareTransaction(&from,
-		&accounts.Account{Address: contractAddress},
-		value,
-		gas,
-		gasPrice,
-		common.ToHex(callData2))
+	from := test.keyStore.Accounts()[0]
 
-	if err != nil {
+	contract := dummyContract()
+
+	test.deployContract(from, contract, t)
+
+	code := test.state.statedb.GetCode(contract.address)
+	t.Logf("code: %s", common.ToHex(code))
+
+	contract.parseABI(t)
+
+	//execute state-altering testAsync method
+	callDummyContractTestAsync(test, from, contract, t)
+
+	//close the database
+	test.state.db.Close()
+
+	//initialise another instance from the existing db
+	test2 := NewTest("test_data/eth", bcommon.NewTestLogger(t), t)
+	if err := test2.Init(); err != nil {
 		t.Fatal(err)
 	}
 
-	//convert to raw bytes
-	data2, err := rlp.EncodeToBytes(tx2)
-	if err != nil {
-		t.Fatal(err)
+	//check that state is the same
+
+	//check that contract code is there
+	code2 := test2.state.statedb.GetCode(contract.address)
+	t.Logf("code2: %s", common.ToHex(code2))
+	if !reflect.DeepEqual(code2, code) {
+		t.Fatalf("contract code should be equal")
 	}
 
-	//try to append tx
-	err = test.state.AppendTx(data2)
-	if err != nil {
-		t.Fatal(err)
-	}
-
-	err = test.state.Commit()
-	if err != nil {
-		t.Fatal(err)
-	}
-
-	receipt2, err := test.state.GetReceipt(tx2.Hash())
-	if err != nil {
-		t.Fatal(err)
-	}
-
-	t.Log(receipt2)
+	//check contract memory
+	callDummyContractTest(test2, from, contract, big.NewInt(110), t)
 
 }

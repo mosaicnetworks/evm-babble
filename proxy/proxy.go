@@ -12,22 +12,34 @@ import (
 //------------------------------------------------------------------------------
 
 type Config struct {
-	proxyAddr  string //bind address of this app proxy
-	babbleAddr string //address of babble node
-	apiAddr    string //address of HTTP API service
-	ethDir     string //directory containing eth config
-	pwdFile    string //file containing password to unlock ethereum accounts
-	timeout    time.Duration
+	proxyAddr    string //bind address of this app proxy
+	babbleAddr   string //address of babble node
+	apiAddr      string //address of HTTP API service
+	ethDir       string //directory containing eth config
+	pwdFile      string //file containing password to unlock ethereum accounts
+	databaseFile string //file containing LevelDB database
+	cache        int    //Megabytes of memory allocated to internal caching (min 16MB / database forced)
+	timeout      time.Duration
 }
 
-func NewConfig(proxyAddr, babbleAddr, apiAddr, ethDir, pwdFile string, timeout time.Duration) Config {
+func NewConfig(proxyAddr,
+	babbleAddr,
+	apiAddr,
+	ethDir,
+	pwdFile,
+	dbFile string,
+	cache int,
+	timeout time.Duration) Config {
+
 	return Config{
-		proxyAddr:  proxyAddr,
-		babbleAddr: babbleAddr,
-		apiAddr:    apiAddr,
-		ethDir:     ethDir,
-		pwdFile:    pwdFile,
-		timeout:    timeout,
+		proxyAddr:    proxyAddr,
+		babbleAddr:   babbleAddr,
+		apiAddr:      apiAddr,
+		ethDir:       ethDir,
+		pwdFile:      pwdFile,
+		databaseFile: dbFile,
+		cache:        cache,
+		timeout:      timeout,
 	}
 }
 
@@ -44,7 +56,7 @@ type Proxy struct {
 func NewProxy(config Config, logger *logrus.Logger) (*Proxy, error) {
 	submitCh := make(chan []byte)
 
-	state, err := state.NewState(logger)
+	state, err := state.NewState(logger, config.databaseFile, config.cache)
 	if err != nil {
 		return nil, err
 	}

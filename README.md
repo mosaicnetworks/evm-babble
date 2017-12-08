@@ -70,26 +70,20 @@ This corresponds to the **client_addr** flag used when starting Babble.
 
 ```
 NAME:
-   evm-babble - Lightweight EVM app for Babble
+   evm-babble run - 
 
 USAGE:
-   evmbabble [global options] command [command options] [arguments...]
+   evm-babble run [command options] [arguments...]
 
-VERSION:
-   0.0.0
-
-COMMANDS:
-     help, h  Shows a list of commands or help for one command
-
-GLOBAL OPTIONS:
-   --datadir value      Directory for the databases and keystore (default: "~/.evm-babble")
+OPTIONS:
+   --datadir value      Directory for the databases and keystore (default: "/home/<user>/.evm-babble")
    --babble_addr value  IP:Port of Babble node (default: "127.0.0.1:1338")
    --proxy_addr value   IP:Port to bind Proxy server (default: "127.0.0.1:1339")
    --api_addr value     IP:Port to bind API server (default: ":8080")
    --log_level value    debug, info, warn, error, fatal, panic (default: "debug")
-   --pwd value          Password file to unlock accounts (default: "~/.evm-babble/pwd.txt")
-   --help, -h           show help
-   --version, -v        print the version
+   --pwd value          Password file to unlock accounts (default: "/home/<user>/.evm-babble/pwd.txt")
+   --db value           Database file (default: "/home/<user>/.evm-babble/chaindata")
+   --cache value        Megabytes of memory allocated to internal caching (min 16MB / database forced) (default: 128)
 ```
 
 ## Configuration
@@ -136,6 +130,14 @@ These keys are protected by a password. Use the --pwd flag to specifiy the locat
 of password file.
 
 **Needless to say you should not reuse these addresses and private keys**
+
+## Database
+
+EVM-Babble will use a LevelDB database to persist state objects. The file of the
+database can be specified with the ```db``` flag which default to ```<datadir>/chaindata```.
+
+If a database already exists when starting a new evm-babble instance, the state
+will be set to the one corresponding to the last committed transaction.
 
 ## API
 The Service exposes an API at the address specified by the --apiaddr flag for  
