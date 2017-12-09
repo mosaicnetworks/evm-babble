@@ -21,7 +21,10 @@ stop:
 	./scripts/stop-testnet.sh
 
 demo: 
-	./scripts/demo.sh $(nodes) 8080 "../nodejs/crowd-funding.sol"
+	./scripts/demo.sh $(nodes) 8080 \
+		"$(shell pwd)/../nodejs/crowd-funding.sol" \
+		"$(shell pwd)/conf/keystore" \
+		"$(shell pwd)/conf/pwd.txt"
 
 .PHONY: up images conf start watch stop demo
 	

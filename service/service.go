@@ -109,9 +109,11 @@ func (m *Service) createGenesisAccounts() error {
 
 func (m *Service) serveAPI() {
 	r := mux.NewRouter()
+	r.HandleFunc("/account/{address}", m.makeHandler(accountHandler)).Methods("GET")
 	r.HandleFunc("/accounts", m.makeHandler(accountsHandler)).Methods("GET")
 	r.HandleFunc("/call", m.makeHandler(callHandler)).Methods("POST")
 	r.HandleFunc("/tx", m.makeHandler(transactionHandler)).Methods("POST")
+	r.HandleFunc("/rawtx", m.makeHandler(rawTransactionHandler)).Methods("POST")
 	r.HandleFunc("/tx/{tx_hash}", m.makeHandler(transactionReceiptHandler)).Methods("GET")
 	http.Handle("/", &CORSServer{r})
 	http.ListenAndServe(m.apiAddr, nil)

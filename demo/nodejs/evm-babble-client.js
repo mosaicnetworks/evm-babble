@@ -28,6 +28,21 @@ request = function(options, callback) {
 }
 
 // class methods
+EVMBabbleClient.prototype.getAccount = function(address) {
+    var options = {
+        host: this.host,
+        port: this.port,
+        path: '/account/' + address,
+        method: 'GET'
+      };
+    
+    return new Promise((resolve, reject) => {
+        req = request(options, resolve)
+        req.on('error', (err) => reject(err))
+        req.end()
+    })
+} 
+
 EVMBabbleClient.prototype.getAccounts = function() {
     var options = {
         host: this.host,
@@ -64,6 +79,22 @@ EVMBabbleClient.prototype.sendTx = function(tx) {
         host: this.host,
         port: this.port,
         path: '/tx',
+        method: 'POST'
+    };
+  
+    return new Promise((resolve, reject) => {
+        req = request(options, resolve)
+        req.write(tx)
+        req.on('error', (err) => reject(err))
+        req.end()
+    })
+}
+
+EVMBabbleClient.prototype.sendRawTx = function(tx) {
+    var options = {
+        host: this.host,
+        port: this.port,
+        path: '/rawtx',
         method: 'POST'
     };
   

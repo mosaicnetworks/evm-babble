@@ -40,11 +40,16 @@ done
 printf "\t}\n" >> $PFILE
 echo "}" >> $PFILE
 
+gKeystore=$DEST/keystore
+mkdir -p $gKeystore
+cp $PASS $DEST
+
 for i in $(seq 1 $N) 
 do
 	dest=$DEST/node$i/eth
 	cp $DEST/genesis.json $dest/
 	cp $PASS $dest
+	cp -r $dest/keystore/* $gKeystore
     rm $dest/addr
 done
 
