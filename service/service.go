@@ -70,6 +70,11 @@ func (m *Service) makeKeyStore() error {
 }
 
 func (m *Service) unlockAccounts() error {
+
+	if len(m.keyStore.Accounts()) == 0 {
+		return nil
+	}
+
 	pwd, err := m.readPwd()
 	if err != nil {
 		m.logger.WithError(err).Error("Reading PwdFile")
@@ -87,6 +92,10 @@ func (m *Service) unlockAccounts() error {
 
 func (m *Service) createGenesisAccounts() error {
 	genesisFile := filepath.Join(m.dataDir, "genesis.json")
+
+	if _, err := os.Stat(genesisFile); os.IsNotExist(err) {
+		return nil
+	}
 
 	contents, err := ioutil.ReadFile(genesisFile)
 	if err != nil {

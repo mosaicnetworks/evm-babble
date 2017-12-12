@@ -252,8 +252,6 @@ checkGoalReached = function(from) {
 
     tx = {
         from: from.accounts[0].address,
-        gaz:1000000,
-        gazPrice:0,
         value:0,
         to: _cfContract.address,
         data: callData

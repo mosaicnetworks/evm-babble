@@ -124,6 +124,7 @@ func (s *State) AppendTx(tx []byte) error {
 		return err
 	}
 	s.logger.WithField("hash", t.Hash().Hex()).Debug("Decoded tx")
+	s.logger.WithField("tx", t.String()).Debug()
 
 	msg, err := t.AsMessage(s.signer)
 	if err != nil {
