@@ -3,6 +3,7 @@ debug.test
 
 build
 
+glide.lock
 vendor
 
 demo/demo-docker/conf

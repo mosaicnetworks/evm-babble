@@ -5,8 +5,8 @@ EVM-BABBLE is a wrapper for the Ethereum Virtual Machine (EVM) which is intended
 to work in conjunction with a Babble node. Ethereum transactions are passed to Babble  
 to be broadcasted to other nodes and eventually fed back to the State in Consensus  
 order. Babble ensures that all network participants process the same transactions  
-in the same order. An API service runs in parallel to handle private accounts  
-and expose Ethereum functionality.  
+in the same order. An API service runs in parallel to handle private accounts and  
+expose Ethereum functionality.  
 
 ## Design
 

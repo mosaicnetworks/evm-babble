@@ -10,13 +10,14 @@ import (
 	"strings"
 	"testing"
 
-	"github.com/Sirupsen/logrus"
+	"github.com/babbleio/babble/hashgraph"
 	"github.com/ethereum/go-ethereum/accounts"
 	"github.com/ethereum/go-ethereum/accounts/abi"
 	"github.com/ethereum/go-ethereum/accounts/keystore"
 	"github.com/ethereum/go-ethereum/common"
 	ethTypes "github.com/ethereum/go-ethereum/core/types"
 	"github.com/ethereum/go-ethereum/rlp"
+	"github.com/sirupsen/logrus"
 
 	bcommon "github.com/babbleio/evm-babble/common"
 )
@@ -141,9 +142,7 @@ func (test *Test) Init() error {
 
 func (test *Test) prepareTransaction(from, to *accounts.Account,
 	value, gas, gasPrice *big.Int,
-	data []byte) (*ethTypes.Transaction, error) {
-
-	nonce := test.state.GetNonce(from.Address)
+	data []byte, nonce uint64) (*ethTypes.Transaction, error) {
 
 	var tx *ethTypes.Transaction
 	if to == nil {
@@ -175,6 +174,15 @@ func (test *Test) prepareTransaction(from, to *accounts.Account,
 	return signedTx, nil
 }
 
+func (test *Test) prepareEvent(transactions [][]byte) hashgraph.Event {
+	event := hashgraph.Event{
+		Body: hashgraph.EventBody{
+			Transactions: transactions,
+		},
+	}
+	return event
+}
+
 func (test *Test) deployContract(from accounts.Account, contract *Contract, t *testing.T) {
 
 	//Create Contract transaction
@@ -183,7 +191,8 @@ func (test *Test) deployContract(from accounts.Account, contract *Contract, t *t
 		_defaultValue,
 		_defaultGas,
 		_defaultGasPrice,
-		common.FromHex(contract.code))
+		common.FromHex(contract.code),
+		test.state.GetNonce(from.Address))
 
 	if err != nil {
 		t.Fatal(err)
@@ -195,13 +204,10 @@ func (test *Test) deployContract(from accounts.Account, contract *Contract, t *t
 		t.Fatal(err)
 	}
 
-	//try to append tx
-	err = test.state.AppendTx(data)
-	if err != nil {
-		t.Fatal(err)
-	}
+	event := test.prepareEvent([][]byte{data})
 
-	err = test.state.Commit()
+	//try to process the Event
+	err = test.state.ProcessEvent(event)
 	if err != nil {
 		t.Fatal(err)
 	}
@@ -231,48 +237,57 @@ func TestTransfer(t *testing.T) {
 
 	from := test.keyStore.Accounts()[0]
 	fromBalanceBefore := test.state.GetBalance(from.Address)
+	fromNonce := test.state.GetNonce(from.Address)
 	to := test.keyStore.Accounts()[1]
 	toBalanceBefore := test.state.GetBalance(to.Address)
 
-	//Create transfer transaction
-	value := big.NewInt(1000000)
-	gas := big.NewInt(21000) //a value transfer transaction costs 21000 gas
-	gasPrice := big.NewInt(0)
+	//Create transfer transactions
+	txCount := 10
+	amount := int64(1000000)
+	txs := make([][]byte, txCount)
+	for i := 0; i < txCount; i++ {
+		value := big.NewInt(amount)
+		gas := big.NewInt(21000) //a value transfer transaction costs 21000 gas
+		gasPrice := big.NewInt(0)
 
-	tx, err := test.prepareTransaction(&from,
-		&to,
-		value,
-		gas,
-		gasPrice,
-		[]byte{})
+		tx, err := test.prepareTransaction(&from,
+			&to,
+			value,
+			gas,
+			gasPrice,
+			[]byte{},
+			fromNonce)
 
+		if err != nil {
+			t.Fatal(err)
+		}
+
+		//convert to raw bytes
+		data, err := rlp.EncodeToBytes(tx)
+		if err != nil {
+			t.Fatal(err)
+		}
+
+		txs[i] = data
+
+		fromNonce++
+	}
+
+	event := test.prepareEvent(txs)
+
+	//try to process the Event
+	err = test.state.ProcessEvent(event)
 	if err != nil {
 		t.Fatal(err)
 	}
 
-	//convert to raw bytes
-	data, err := rlp.EncodeToBytes(tx)
-	if err != nil {
-		t.Fatal(err)
-	}
-
-	//try to append tx
-	err = test.state.AppendTx(data)
-	if err != nil {
-		t.Fatal(err)
-	}
-
-	err = test.state.Commit()
-	if err != nil {
-		t.Fatal(err)
-	}
-
+	totalValue := big.NewInt(int64(txCount) * amount)
 	fromBalanceAfter := test.state.GetBalance(from.Address)
 	expectedFromBalanceAfter := big.NewInt(0)
-	expectedFromBalanceAfter.Sub(fromBalanceBefore, value)
+	expectedFromBalanceAfter.Sub(fromBalanceBefore, totalValue)
 	toBalanceAfter := test.state.GetBalance(to.Address)
 	expectedToBalanceAfter := big.NewInt(0)
-	expectedToBalanceAfter.Add(toBalanceBefore, value)
+	expectedToBalanceAfter.Add(toBalanceBefore, totalValue)
 
 	if fromBalanceAfter.Cmp(expectedFromBalanceAfter) != 0 {
 		t.Fatalf("fromBalanceAfter should be %v, not %v", expectedFromBalanceAfter, fromBalanceAfter)
@@ -379,7 +394,8 @@ func callDummyContractTestAsync(test *Test, from accounts.Account, contract *Con
 		_defaultValue,
 		_defaultGas,
 		_defaultGasPrice,
-		callData)
+		callData,
+		test.state.GetNonce(from.Address))
 
 	if err != nil {
 		t.Fatal(err)
@@ -391,17 +407,13 @@ func callDummyContractTestAsync(test *Test, from accounts.Account, contract *Con
 		t.Fatal(err)
 	}
 
-	//try to append tx
-	err = test.state.AppendTx(data)
+	event := test.prepareEvent([][]byte{data})
+
+	//try to process the Event
+	err = test.state.ProcessEvent(event)
 	if err != nil {
 		t.Fatal(err)
 	}
-
-	err = test.state.Commit()
-	if err != nil {
-		t.Fatal(err)
-	}
-
 	receipt, err := test.state.GetReceipt(tx.Hash())
 	if err != nil {
 		t.Fatal(err)
