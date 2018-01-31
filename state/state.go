@@ -6,7 +6,7 @@ import (
 	"sync"
 	"syscall"
 
-	"github.com/Sirupsen/logrus"
+	"github.com/babbleio/babble/hashgraph"
 	"github.com/ethereum/go-ethereum/common"
 	"github.com/ethereum/go-ethereum/common/math"
 	"github.com/ethereum/go-ethereum/core"
@@ -17,6 +17,7 @@ import (
 	"github.com/ethereum/go-ethereum/ethdb"
 	"github.com/ethereum/go-ethereum/params"
 	"github.com/ethereum/go-ethereum/rlp"
+	"github.com/sirupsen/logrus"
 
 	bcommon "github.com/babbleio/evm-babble/common"
 )
@@ -112,14 +113,30 @@ func (s *State) Call(callMsg ethTypes.Message) ([]byte, error) {
 	return res, err
 }
 
-// AppendTx applies the tx to the WAS
-func (s *State) AppendTx(tx []byte) error {
-	s.logger.Debug("AppendTx")
+func (s *State) ProcessBlock(block hashgraph.Block) error {
+	s.logger.Debug("Process Block")
 	s.commitMutex.Lock()
 	defer s.commitMutex.Unlock()
 
+	blockHashBytes, _ := block.Hash()
+	blockHash := common.BytesToHash(blockHashBytes)
+
+	for txIndex, txBytes := range block.Transactions {
+		if err := s.applyTransaction(txBytes, txIndex, blockHash); err != nil {
+			return err
+		}
+	}
+
+	return s.commit()
+}
+
+//++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
+
+//applyTransaction applies a transaction to the WAS
+func (s *State) applyTransaction(txBytes []byte, txIndex int, blockHash common.Hash) error {
+
 	var t ethTypes.Transaction
-	if err := rlp.Decode(bytes.NewReader(tx), &t); err != nil {
+	if err := rlp.Decode(bytes.NewReader(txBytes), &t); err != nil {
 		s.logger.WithError(err).Error("Decoding Transaction")
 		return err
 	}
@@ -135,7 +152,7 @@ func (s *State) AppendTx(tx []byte) error {
 	context := vm.Context{
 		CanTransfer: core.CanTransfer,
 		Transfer:    core.Transfer,
-		GetHash:     func(uint64) common.Hash { return common.Hash{} },
+		GetHash:     func(uint64) common.Hash { return blockHash },
 		// Message information
 		Origin:      msg.From(),
 		GasLimit:    msg.Gas(),
@@ -145,7 +162,7 @@ func (s *State) AppendTx(tx []byte) error {
 
 	//Prepare the ethState with transaction Hash so that it can be used in emitted
 	//logs
-	s.was.ethState.Prepare(t.Hash(), common.Hash{}, 0)
+	s.was.ethState.Prepare(t.Hash(), blockHash, txIndex)
 
 	// The EVM should never be reused and is not thread safe.
 	vmenv := vm.NewEVM(context, s.was.ethState, &s.chainConfig, s.vmConfig)
@@ -183,17 +200,6 @@ func (s *State) AppendTx(tx []byte) error {
 
 	return nil
 }
-
-// Commit then reset the WAS
-func (s *State) Commit() error {
-	s.logger.Debug("Commit")
-	s.commitMutex.Lock()
-	defer s.commitMutex.Unlock()
-
-	return s.commit()
-}
-
-//------------------------------------------------------------------------------
 
 func (s *State) commit() error {
 	//commit all state changes to the database

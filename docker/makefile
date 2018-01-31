@@ -1,4 +1,4 @@
-EVM_BABBLE_VERSION=0.1.1
+EVM_BABBLE_VERSION=0.2.0
 EVM_BABBLE_UI_VERSION=0.1.0
 
 all: evm-babble-image evm-babble-ui-image 

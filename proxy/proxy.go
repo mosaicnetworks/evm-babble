@@ -3,10 +3,10 @@ package proxy
 import (
 	"time"
 
-	"github.com/Sirupsen/logrus"
 	bproxy "github.com/babbleio/babble/proxy/babble"
 	"github.com/babbleio/evm-babble/service"
 	"github.com/babbleio/evm-babble/state"
+	"github.com/sirupsen/logrus"
 )
 
 //------------------------------------------------------------------------------
@@ -102,13 +102,9 @@ func (p *Proxy) Serve() {
 				p.logger.WithError(err).Error("SubmitTx")
 			}
 			p.logger.Debug("proxy submitted tx")
-		case tx := <-p.babbleProxy.CommitCh():
-			if err := p.state.AppendTx(tx); err != nil {
-				p.logger.WithError(err).Error("AppendTx")
-				break
-			}
-			if err := p.state.Commit(); err != nil {
-				p.logger.WithError(err).Error("Commit")
+		case block := <-p.babbleProxy.CommitCh():
+			if err := p.state.ProcessBlock(block); err != nil {
+				p.logger.WithError(err).Error("ProcessBlock")
 				break
 			}
 		}

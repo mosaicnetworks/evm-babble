@@ -10,14 +10,15 @@ import (
 	"strings"
 	"testing"
 
-	"github.com/Sirupsen/logrus"
 	"github.com/ethereum/go-ethereum/accounts"
 	"github.com/ethereum/go-ethereum/accounts/abi"
 	"github.com/ethereum/go-ethereum/accounts/keystore"
 	"github.com/ethereum/go-ethereum/common"
 	ethTypes "github.com/ethereum/go-ethereum/core/types"
 	"github.com/ethereum/go-ethereum/rlp"
+	"github.com/sirupsen/logrus"
 
+	"github.com/babbleio/babble/hashgraph"
 	bcommon "github.com/babbleio/evm-babble/common"
 )
 
@@ -175,6 +176,14 @@ func (test *Test) prepareTransaction(from, to *accounts.Account,
 	return signedTx, nil
 }
 
+func (test *Test) prepareBlock(rr int, transactions [][]byte) hashgraph.Block {
+	block := hashgraph.Block{
+		RoundReceived: rr,
+		Transactions:  transactions,
+	}
+	return block
+}
+
 func (test *Test) deployContract(from accounts.Account, contract *Contract, t *testing.T) {
 
 	//Create Contract transaction
@@ -195,13 +204,10 @@ func (test *Test) deployContract(from accounts.Account, contract *Contract, t *t
 		t.Fatal(err)
 	}
 
-	//try to append tx
-	err = test.state.AppendTx(data)
-	if err != nil {
-		t.Fatal(err)
-	}
+	block := test.prepareBlock(1, [][]byte{data})
 
-	err = test.state.Commit()
+	//try to process the block
+	err = test.state.ProcessBlock(block)
 	if err != nil {
 		t.Fatal(err)
 	}
@@ -256,13 +262,10 @@ func TestTransfer(t *testing.T) {
 		t.Fatal(err)
 	}
 
-	//try to append tx
-	err = test.state.AppendTx(data)
-	if err != nil {
-		t.Fatal(err)
-	}
+	block := test.prepareBlock(1, [][]byte{data})
 
-	err = test.state.Commit()
+	//try to process the block
+	err = test.state.ProcessBlock(block)
 	if err != nil {
 		t.Fatal(err)
 	}
@@ -391,13 +394,10 @@ func callDummyContractTestAsync(test *Test, from accounts.Account, contract *Con
 		t.Fatal(err)
 	}
 
-	//try to append tx
-	err = test.state.AppendTx(data)
-	if err != nil {
-		t.Fatal(err)
-	}
+	block := test.prepareBlock(1, [][]byte{data})
 
-	err = test.state.Commit()
+	//try to process the block
+	err = test.state.ProcessBlock(block)
 	if err != nil {
 		t.Fatal(err)
 	}

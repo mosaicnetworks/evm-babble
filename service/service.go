@@ -10,11 +10,11 @@ import (
 	"strings"
 	"sync"
 
-	"github.com/Sirupsen/logrus"
 	"github.com/babbleio/evm-babble/common"
 	"github.com/babbleio/evm-babble/state"
 	"github.com/ethereum/go-ethereum/accounts/keystore"
 	"github.com/gorilla/mux"
+	"github.com/sirupsen/logrus"
 )
 
 var defaultGas = big.NewInt(90000)
