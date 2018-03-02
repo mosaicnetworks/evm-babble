@@ -176,14 +176,6 @@ func (test *Test) prepareTransaction(from, to *accounts.Account,
 	return signedTx, nil
 }
 
-func (test *Test) prepareBlock(rr int, transactions [][]byte) hashgraph.Block {
-	block := hashgraph.Block{
-		RoundReceived: rr,
-		Transactions:  transactions,
-	}
-	return block
-}
-
 func (test *Test) deployContract(from accounts.Account, contract *Contract, t *testing.T) {
 
 	//Create Contract transaction
@@ -204,10 +196,10 @@ func (test *Test) deployContract(from accounts.Account, contract *Contract, t *t
 		t.Fatal(err)
 	}
 
-	block := test.prepareBlock(1, [][]byte{data})
+	block := hashgraph.NewBlock(0, 1, [][]byte{data})
 
 	//try to process the block
-	err = test.state.ProcessBlock(block)
+	_, err = test.state.ProcessBlock(block)
 	if err != nil {
 		t.Fatal(err)
 	}
@@ -262,10 +254,10 @@ func TestTransfer(t *testing.T) {
 		t.Fatal(err)
 	}
 
-	block := test.prepareBlock(1, [][]byte{data})
+	block := hashgraph.NewBlock(0, 1, [][]byte{data})
 
 	//try to process the block
-	err = test.state.ProcessBlock(block)
+	_, err = test.state.ProcessBlock(block)
 	if err != nil {
 		t.Fatal(err)
 	}
@@ -394,10 +386,10 @@ func callDummyContractTestAsync(test *Test, from accounts.Account, contract *Con
 		t.Fatal(err)
 	}
 
-	block := test.prepareBlock(1, [][]byte{data})
+	block := hashgraph.NewBlock(0, 1, [][]byte{data})
 
 	//try to process the block
-	err = test.state.ProcessBlock(block)
+	_, err = test.state.ProcessBlock(block)
 	if err != nil {
 		t.Fatal(err)
 	}

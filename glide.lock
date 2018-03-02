@@ -1,5 +1,5 @@
 hash: abaea41d8a15b710764581ff5404e02af40565735a2456d8395770aec5e41903
-updated: 2018-01-31T11:10:47.215202046Z
+updated: 2018-03-02T15:29:05.470321284Z
 imports:
 - name: github.com/AndreasBriese/bbloom
   version: 28f7e881ca57bc00e028f9ede9f0d9104cfeef5e
@@ -8,7 +8,7 @@ imports:
   subpackages:
   - monotime
 - name: github.com/babbleio/babble
-  version: ee26c15eaef8e522cb644114f079c029b28d72cf
+  version: 106764fb95dd08680acdf7bb57d8623f433c898c
   subpackages:
   - common
   - crypto
@@ -20,7 +20,7 @@ imports:
   subpackages:
   - btcec
 - name: github.com/dgraph-io/badger
-  version: 9f8b956593906e9092faa04268b4a73937be2486
+  version: 69611218c7078be6de16f4ea13fb256e701b6b73
   subpackages:
   - options
   - protos

@@ -27,7 +27,7 @@ contract CrowdFunding {
     );
 
     function CrowdFunding(uint goal) {
-        // Creates new struct and saves in storage. We leave out the mapping type.
+        // Creates new struct and saves in storage.
         campaign = Campaign({
             beneficiary: msg.sender,
             fundingGoal: goal,

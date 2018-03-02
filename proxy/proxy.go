@@ -70,7 +70,8 @@ func NewProxy(config Config, logger *logrus.Logger) (*Proxy, error) {
 
 	babbleProxy, err := bproxy.NewSocketBabbleProxy(config.babbleAddr,
 		config.proxyAddr,
-		config.timeout)
+		config.timeout,
+		logger)
 	if err != nil {
 		return nil, err
 	}
@@ -102,11 +103,10 @@ func (p *Proxy) Serve() {
 				p.logger.WithError(err).Error("SubmitTx")
 			}
 			p.logger.Debug("proxy submitted tx")
-		case block := <-p.babbleProxy.CommitCh():
-			if err := p.state.ProcessBlock(block); err != nil {
-				p.logger.WithError(err).Error("ProcessBlock")
-				break
-			}
+		case commit := <-p.babbleProxy.CommitCh():
+			p.logger.Debug("CommitBlock")
+			stateHash, err := p.state.ProcessBlock(commit.Block)
+			commit.Respond(stateHash.Bytes(), err)
 		}
 	}
 }

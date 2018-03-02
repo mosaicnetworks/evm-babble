@@ -113,7 +113,7 @@ func (s *State) Call(callMsg ethTypes.Message) ([]byte, error) {
 	return res, err
 }
 
-func (s *State) ProcessBlock(block hashgraph.Block) error {
+func (s *State) ProcessBlock(block hashgraph.Block) (common.Hash, error) {
 	s.logger.Debug("Process Block")
 	s.commitMutex.Lock()
 	defer s.commitMutex.Unlock()
@@ -121,9 +121,9 @@ func (s *State) ProcessBlock(block hashgraph.Block) error {
 	blockHashBytes, _ := block.Hash()
 	blockHash := common.BytesToHash(blockHashBytes)
 
-	for txIndex, txBytes := range block.Transactions {
+	for txIndex, txBytes := range block.Transactions() {
 		if err := s.applyTransaction(txBytes, txIndex, blockHash); err != nil {
-			return err
+			return common.Hash{}, err
 		}
 	}
 
@@ -201,12 +201,12 @@ func (s *State) applyTransaction(txBytes []byte, txIndex int, blockHash common.H
 	return nil
 }
 
-func (s *State) commit() error {
+func (s *State) commit() (common.Hash, error) {
 	//commit all state changes to the database
 	root, err := s.was.Commit()
 	if err != nil {
 		s.logger.WithError(err).Error("Committing WAS")
-		return err
+		return root, err
 	}
 
 	// reset the write ahead state for the next block
@@ -215,7 +215,7 @@ func (s *State) commit() error {
 	s.logger.WithField("root", root.Hex()).Debug("Committed")
 	s.resetWAS()
 
-	return nil
+	return root, nil
 }
 
 func (s *State) resetWAS() {
@@ -277,7 +277,9 @@ func (s *State) CreateAccounts(accounts bcommon.AccountMap) error {
 		s.logger.WithField("address", addr).Debug("Adding account")
 	}
 
-	return s.commit()
+	_, err := s.commit()
+
+	return err
 }
 
 func (s *State) GetBalance(addr common.Address) *big.Int {
