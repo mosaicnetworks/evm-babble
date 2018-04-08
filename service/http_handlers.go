@@ -306,12 +306,12 @@ func transactionReceiptHandler(w http.ResponseWriter, r *http.Request, m *Servic
 		TransactionHash:   txHash,
 		From:              from,
 		To:                tx.To(),
-		GasUsed:           receipt.GasUsed,
-		CumulativeGasUsed: receipt.CumulativeGasUsed,
+		GasUsed:           big.NewInt(0).SetUint64(receipt.GasUsed),           // NICOLAE_FIX: receipt.GasUsed,
+		CumulativeGasUsed: big.NewInt(0).SetUint64(receipt.CumulativeGasUsed), // NICOLAE_FIX: receipt.CumulativeGasUsed,
 		ContractAddress:   receipt.ContractAddress,
 		Logs:              receipt.Logs,
 		LogsBloom:         receipt.Bloom,
-		Failed:            receipt.Failed,
+		Failed:            false, // NICOLAE_FIX: receipt.Failed,
 	}
 
 	if receipt.Logs == nil {
@@ -344,7 +344,7 @@ func prepareCallMessage(args SendTxArgs, ks *keystore.KeyStore) (*ethTypes.Messa
 		args.To,
 		0,
 		args.Value,
-		args.Gas,
+		args.Gas.Uint64(), // NICOLAE_FIX: args.Gas,
 		args.GasPrice,
 		common.FromHex(args.Data),
 		false)
@@ -369,14 +369,14 @@ func prepareTransaction(args SendTxArgs, state *state.State, ks *keystore.KeySto
 	if args.To == nil {
 		tx = ethTypes.NewContractCreation(*args.Nonce,
 			args.Value,
-			args.Gas,
+			args.Gas.Uint64(), // NICOLAE_FIX: args.Gas,
 			args.GasPrice,
 			common.FromHex(args.Data))
 	} else {
 		tx = ethTypes.NewTransaction(*args.Nonce,
 			*args.To,
 			args.Value,
-			args.Gas,
+			args.Gas.Uint64(), // NICOLAE_FIX: args.Gas,
 			args.GasPrice,
 			common.FromHex(args.Data))
 	}

@@ -31,7 +31,8 @@ type WriteAheadState struct {
 
 func (was *WriteAheadState) Commit() (common.Hash, error) {
 	//commit all state changes to the database
-	hashArray, err := was.ethState.CommitTo(was.db, true)
+	// hashArray, err := was.ethState.CommitTo(was.db, true) // NICOLAE_FIX: see API change details in https://github.com/ethereum/go-ethereum/commit/55599ee95d4151a2502465e0afc7c47bd1acba77#diff-19b2c4499088b23ccb40eedb26c42e68
+	hashArray, err := was.ethState.Commit(true)
 	if err != nil {
 		was.logger.WithError(err).Error("Committing state")
 		return common.Hash{}, err
