@@ -4,8 +4,8 @@ import (
 	"time"
 
 	bproxy "github.com/babbleio/babble/proxy/babble"
-	"github.com/babbleio/evm-babble/service"
-	"github.com/babbleio/evm-babble/state"
+	"github.com/nic0lae/evm-babble/service"
+	"github.com/nic0lae/evm-babble/state"
 	"github.com/sirupsen/logrus"
 )
 

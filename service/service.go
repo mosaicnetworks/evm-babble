@@ -10,10 +10,10 @@ import (
 	"strings"
 	"sync"
 
-	"github.com/babbleio/evm-babble/common"
-	"github.com/babbleio/evm-babble/state"
 	"github.com/ethereum/go-ethereum/accounts/keystore"
 	"github.com/gorilla/mux"
+	"github.com/nic0lae/evm-babble/common"
+	"github.com/nic0lae/evm-babble/state"
 	"github.com/sirupsen/logrus"
 )
 

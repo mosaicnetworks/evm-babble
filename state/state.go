@@ -2,6 +2,7 @@ package state
 
 import (
 	"bytes"
+	"encoding/json"
 	"math/big"
 	"sync"
 	"syscall"
@@ -19,7 +20,7 @@ import (
 	"github.com/ethereum/go-ethereum/rlp"
 	"github.com/sirupsen/logrus"
 
-	bcommon "github.com/babbleio/evm-babble/common"
+	bcommon "github.com/nic0lae/evm-babble/common"
 )
 
 var (
@@ -131,6 +132,10 @@ func (s *State) ProcessBlock(block hashgraph.Block) (common.Hash, error) {
 }
 
 //++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
+func txAsString(tx ethTypes.Transaction) string {
+	stuff, _ := json.Marshal(tx)
+	return string(stuff)
+}
 
 //applyTransaction applies a transaction to the WAS
 func (s *State) applyTransaction(txBytes []byte, txIndex int, blockHash common.Hash) error {
@@ -141,7 +146,7 @@ func (s *State) applyTransaction(txBytes []byte, txIndex int, blockHash common.H
 		return err
 	}
 	s.logger.WithField("hash", t.Hash().Hex()).Debug("Decoded tx")
-	s.logger.WithField("tx", t.String()).Debug()
+	s.logger.WithField("tx", txAsString(t)).Debug()
 
 	msg, err := t.AsMessage(s.signer)
 	if err != nil {
@@ -174,14 +179,14 @@ func (s *State) applyTransaction(txBytes []byte, txIndex int, blockHash common.H
 		return err
 	}
 
-	s.was.totalUsedGas.Add(s.was.totalUsedGas, gas)
+	s.was.totalUsedGas.Add(s.was.totalUsedGas, big.NewInt(0).SetUint64(gas))
 
 	// Create a new receipt for the transaction, storing the intermediate root and gas used by the tx
 	// based on the eip phase, we're passing wether the root touch-delete accounts.
 	root := s.was.ethState.IntermediateRoot(true) //this has side effects. It updates StateObjects (SmartContract memory)
-	receipt := ethTypes.NewReceipt(root.Bytes(), failed, s.was.totalUsedGas)
+	receipt := ethTypes.NewReceipt(root.Bytes(), failed, s.was.totalUsedGas.Uint64())
 	receipt.TxHash = t.Hash()
-	receipt.GasUsed = new(big.Int).Set(gas)
+	receipt.GasUsed = gas
 	// if the transaction created a contract, store the creation address in the receipt.
 	if msg.To() == nil {
 		receipt.ContractAddress = crypto.CreateAddress(vmenv.Context.Origin, t.Nonce())
@@ -225,7 +230,7 @@ func (s *State) resetWAS() {
 		ethState:     state,
 		txIndex:      0,
 		totalUsedGas: big.NewInt(0),
-		gp:           new(core.GasPool).AddGas(gasLimit),
+		gp:           new(core.GasPool).AddGas(gasLimit.Uint64()),
 		logger:       s.logger,
 	}
 	s.logger.Debug("Reset Write Ahead State")

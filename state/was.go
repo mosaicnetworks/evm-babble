@@ -31,7 +31,7 @@ type WriteAheadState struct {
 
 func (was *WriteAheadState) Commit() (common.Hash, error) {
 	//commit all state changes to the database
-	hashArray, err := was.ethState.CommitTo(was.db, true)
+	hashArray, err := was.ethState.Commit(true)
 	if err != nil {
 		was.logger.WithError(err).Error("Committing state")
 		return common.Hash{}, err

@@ -19,7 +19,7 @@ import (
 	"github.com/sirupsen/logrus"
 
 	"github.com/babbleio/babble/hashgraph"
-	bcommon "github.com/babbleio/evm-babble/common"
+	bcommon "github.com/nic0lae/evm-babble/common"
 )
 
 var (
@@ -150,14 +150,14 @@ func (test *Test) prepareTransaction(from, to *accounts.Account,
 	if to == nil {
 		tx = ethTypes.NewContractCreation(nonce,
 			value,
-			gas,
+			gas.Uint64(),
 			gasPrice,
 			data)
 	} else {
 		tx = ethTypes.NewTransaction(nonce,
 			to.Address,
 			value,
-			gas,
+			gas.Uint64(),
 			gasPrice,
 			data)
 	}
@@ -335,7 +335,7 @@ func callDummyContractTest(test *Test, from accounts.Account, contract *Contract
 		&contract.address,
 		0,
 		_defaultValue,
-		_defaultGas,
+		_defaultGas.Uint64(),
 		_defaultGasPrice,
 		callData,
 		false)

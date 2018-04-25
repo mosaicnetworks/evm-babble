@@ -7,13 +7,13 @@ import (
 	"math/big"
 	"net/http"
 
-	"github.com/babbleio/evm-babble/state"
 	"github.com/ethereum/go-ethereum/accounts"
 	"github.com/ethereum/go-ethereum/accounts/keystore"
 	"github.com/ethereum/go-ethereum/common"
 	"github.com/ethereum/go-ethereum/common/hexutil"
 	ethTypes "github.com/ethereum/go-ethereum/core/types"
 	"github.com/ethereum/go-ethereum/rlp"
+	"github.com/nic0lae/evm-babble/state"
 )
 
 /*
@@ -306,12 +306,12 @@ func transactionReceiptHandler(w http.ResponseWriter, r *http.Request, m *Servic
 		TransactionHash:   txHash,
 		From:              from,
 		To:                tx.To(),
-		GasUsed:           receipt.GasUsed,
-		CumulativeGasUsed: receipt.CumulativeGasUsed,
+		GasUsed:           big.NewInt(0).SetUint64(receipt.GasUsed),
+		CumulativeGasUsed: big.NewInt(0).SetUint64(receipt.CumulativeGasUsed),
 		ContractAddress:   receipt.ContractAddress,
 		Logs:              receipt.Logs,
 		LogsBloom:         receipt.Bloom,
-		Failed:            receipt.Failed,
+		Failed:            false,
 	}
 
 	if receipt.Logs == nil {
@@ -344,7 +344,7 @@ func prepareCallMessage(args SendTxArgs, ks *keystore.KeyStore) (*ethTypes.Messa
 		args.To,
 		0,
 		args.Value,
-		args.Gas,
+		args.Gas.Uint64(),
 		args.GasPrice,
 		common.FromHex(args.Data),
 		false)
@@ -369,14 +369,14 @@ func prepareTransaction(args SendTxArgs, state *state.State, ks *keystore.KeySto
 	if args.To == nil {
 		tx = ethTypes.NewContractCreation(*args.Nonce,
 			args.Value,
-			args.Gas,
+			args.Gas.Uint64(),
 			args.GasPrice,
 			common.FromHex(args.Data))
 	} else {
 		tx = ethTypes.NewTransaction(*args.Nonce,
 			*args.To,
 			args.Value,
-			args.Gas,
+			args.Gas.Uint64(),
 			args.GasPrice,
 			common.FromHex(args.Data))
 	}
