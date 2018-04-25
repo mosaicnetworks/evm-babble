@@ -14,7 +14,7 @@ import (
 	"gopkg.in/urfave/cli.v1"
 
 	"github.com/babbleio/babble/version"
-	"github.com/babbleio/evm-babble/proxy"
+	"github.com/nic0lae/evm-babble/proxy"
 )
 
 var (
