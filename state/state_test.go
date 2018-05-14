@@ -18,8 +18,8 @@ import (
 	"github.com/ethereum/go-ethereum/rlp"
 	"github.com/sirupsen/logrus"
 
-	"github.com/babbleio/babble/hashgraph"
-	bcommon "github.com/babbleio/evm-babble/common"
+	"github.com/mosaicnetworks/babble/hashgraph"
+	bcommon "github.com/mosaicnetworks/evm-babble/common"
 )
 
 var (

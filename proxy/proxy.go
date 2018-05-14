@@ -3,9 +3,9 @@ package proxy
 import (
 	"time"
 
-	bproxy "github.com/babbleio/babble/proxy/babble"
-	"github.com/babbleio/evm-babble/service"
-	"github.com/babbleio/evm-babble/state"
+	bproxy "github.com/mosaicnetworks/babble/proxy/babble"
+	"github.com/mosaicnetworks/evm-babble/service"
+	"github.com/mosaicnetworks/evm-babble/state"
 	"github.com/sirupsen/logrus"
 )
 

@@ -1,6 +1,6 @@
-package: github.com/babbleio/evm-babble
+package: github.com/mosaicnetworks/evm-babble
 import:
-- package: github.com/babbleio/babble
+- package: github.com/mosaicnetworks/babble
 - package: github.com/sirupsen/logrus
 - package: github.com/ethereum/go-ethereum
   version: =1.7.0

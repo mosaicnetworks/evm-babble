@@ -13,8 +13,8 @@ import (
 	"github.com/sirupsen/logrus"
 	"gopkg.in/urfave/cli.v1"
 
-	"github.com/babbleio/babble/version"
-	"github.com/babbleio/evm-babble/proxy"
+	"github.com/mosaicnetworks/babble/version"
+	"github.com/mosaicnetworks/evm-babble/proxy"
 )
 
 var (

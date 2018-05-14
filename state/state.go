@@ -6,7 +6,6 @@ import (
 	"sync"
 	"syscall"
 
-	"github.com/babbleio/babble/hashgraph"
 	"github.com/ethereum/go-ethereum/common"
 	"github.com/ethereum/go-ethereum/common/math"
 	"github.com/ethereum/go-ethereum/core"
@@ -17,9 +16,10 @@ import (
 	"github.com/ethereum/go-ethereum/ethdb"
 	"github.com/ethereum/go-ethereum/params"
 	"github.com/ethereum/go-ethereum/rlp"
+	"github.com/mosaicnetworks/babble/hashgraph"
 	"github.com/sirupsen/logrus"
 
-	bcommon "github.com/babbleio/evm-babble/common"
+	bcommon "github.com/mosaicnetworks/evm-babble/common"
 )
 
 var (
