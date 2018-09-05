@@ -41,7 +41,7 @@ getStats = function(h, p) {
   var options = {
     host: h,
     port: p,
-    path: '/Stats',
+    path: '/stats',
     method: 'GET'
   };
 
