@@ -14,7 +14,7 @@ import (
 	"gopkg.in/urfave/cli.v1"
 
 	"github.com/mosaicnetworks/babble/version"
-	"github.com/mosaicnetworks/evm-babble/proxy"
+	"github.com/mosaicnetworks/evm-babble/engine"
 )
 
 var (
@@ -110,7 +110,7 @@ func run(c *cli.Context) error {
 		"cache":       dbCache,
 	}).Debug("RUN")
 
-	config := proxy.NewConfig(
+	config := engine.NewConfig(
 		proxyAddress,
 		babbleAddress,
 		apiAddress,
@@ -120,12 +120,12 @@ func run(c *cli.Context) error {
 		dbCache,
 		1*time.Second)
 
-	proxy, err := proxy.NewProxy(config, logger)
+	engine, err := engine.NewBabbleSocketEngine(config, logger)
 	if err != nil {
 		return fmt.Errorf("Error building proxy: %s", err)
 	}
 
-	proxy.Run()
+	engine.Run()
 
 	return nil
 }
