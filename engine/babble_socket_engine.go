@@ -21,21 +21,22 @@ func NewBabbleSocketEngine(config Config, logger *logrus.Logger) (*BabbleSocketE
 	submitCh := make(chan []byte)
 
 	state, err := state.NewState(logger,
-		config.BaseConfig.DbFile,
-		config.BaseConfig.Cache)
+		config.Eth.DbFile,
+		config.Eth.Cache)
 	if err != nil {
 		return nil, err
 	}
 
-	service := service.NewService(config.BaseConfig.EthDir,
-		config.BaseConfig.APIAddr,
-		config.BaseConfig.PwdFile,
+	service := service.NewService(config.Eth.Genesis,
+		config.Eth.Keystore,
+		config.Eth.EthAPIAddr,
+		config.Eth.PwdFile,
 		state,
 		submitCh,
 		logger)
 
-	babbleProxy, err := bproxy.NewSocketBabbleProxy(config.Babble.BabbleAddr,
-		config.Babble.ProxyAddr,
+	babbleProxy, err := bproxy.NewSocketBabbleProxy(config.Babble.ProxyAddr,
+		config.Babble.ClientAddr,
 		time.Duration(config.Babble.TCPTimeout)*time.Millisecond,
 		logger)
 	if err != nil {

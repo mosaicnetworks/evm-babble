@@ -33,6 +33,17 @@ func logLevel(l string) logrus.Level {
 	}
 }
 
+// ParseConfig retrieves the default environment configuration,
+// sets up the Tendermint root and ensures that the root exists
+func ParseConfig() (*engine.Config, error) {
+	conf := engine.DefaultConfig()
+	err := viper.Unmarshal(conf)
+	if err != nil {
+		return nil, err
+	}
+	return conf, err
+}
+
 //RootCmd is the root command for evm-babble
 var RootCmd = &cobra.Command{
 	Use:   "evm-babble",
@@ -54,19 +65,13 @@ var RootCmd = &cobra.Command{
 		logger = logrus.New()
 		logger.Level = logLevel(config.BaseConfig.LogLevel)
 
+		logger.WithFields(logrus.Fields{
+			"Base":   config.BaseConfig,
+			"Eth":    config.Eth,
+			"Babble": config.Babble}).Debug("Config")
+
 		return nil
 	},
-}
-
-// ParseConfig retrieves the default environment configuration,
-// sets up the Tendermint root and ensures that the root exists
-func ParseConfig() (*engine.Config, error) {
-	conf := engine.DefaultConfig()
-	err := viper.Unmarshal(conf)
-	if err != nil {
-		return nil, err
-	}
-	return conf, err
 }
 
 // Bind all flags and read the config into viper

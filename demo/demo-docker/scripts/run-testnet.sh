@@ -14,25 +14,17 @@ docker network create \
 
 for i in $(seq 1 $N)
 do
-    docker create --name=node$i --net=babblenet --ip=172.77.5.$i mosaicnetworks/babble:0.3.0 run \
-    --cache_size=50000 \
-    --tcp_timeout=200 \
-    --heartbeat=10 \
-    --node_addr="172.77.5.$i:1337" \
-    --proxy_addr="172.77.5.$i:1338" \
-    --client_addr="172.77.5.$(($N+$i)):1339" \
-    --service_addr="172.77.5.$i:80"
-    docker cp conf/node$i/babble node$i:/.babble
+    docker create --name=node$i --net=babblenet --ip=172.77.5.$i mosaicnetworks/evm-babble:0.3.0 run \
+    --eth.api_addr="172.77.5.$i:8080" \
+    --babble.node_addr="172.77.5.$i:1337" \
+    --babble.api_addr="172.77.5.$i:8000" \
+    --babble.heartbeat=50 \
+    --babble.tcp_timeout=200 \
+    --babble.store_type="inmem" 
+    docker cp conf/node$i node$i:/.evm-babble
     docker start node$i
 
-    docker create --name=client$i --net=babblenet --ip=172.77.5.$(($N+$i)) mosaicnetworks/evm-babble:0.3.0 run \
-    --proxy_addr="0.0.0.0:1339" \
-    --babble_addr="172.77.5.$i:1338" \
-    --api_addr="0.0.0.0:8080"
-    docker cp conf/node$i/eth/ client$i:/.evm-babble
-    docker start client$i
-
-    docker create --name=web$i --net=babblenet --ip=172.77.5.$(($N+$N+$i)) mosaicnetworks/evm-babble-ui:0.1.0
+    docker create --name=web$i --net=babblenet --ip=172.77.5.$(($N+$i)) mosaicnetworks/evm-babble-ui:0.1.0
     docker cp ../../ui/demo-server/. web$i:/src
     docker cp conf/node$i/web/config.json web$i:/src/config
     docker start web$i

@@ -6,7 +6,6 @@ import (
 	"math/big"
 	"net/http"
 	"os"
-	"path/filepath"
 	"strings"
 	"sync"
 
@@ -21,26 +20,28 @@ var defaultGas = big.NewInt(90000)
 
 type Service struct {
 	sync.Mutex
-	state    *state.State
-	submitCh chan []byte
-	dataDir  string
-	apiAddr  string
-	keyStore *keystore.KeyStore
-	pwdFile  string
-	logger   *logrus.Logger
+	state       *state.State
+	submitCh    chan []byte
+	genesisFile string
+	keystoreDir string
+	apiAddr     string
+	keyStore    *keystore.KeyStore
+	pwdFile     string
+	logger      *logrus.Logger
 }
 
-func NewService(dataDir, apiAddr, pwdFile string,
+func NewService(genesisFile, keystoreDir, apiAddr, pwdFile string,
 	state *state.State,
 	submitCh chan []byte,
 	logger *logrus.Logger) *Service {
 	return &Service{
-		dataDir:  dataDir,
-		apiAddr:  apiAddr,
-		pwdFile:  pwdFile,
-		state:    state,
-		submitCh: submitCh,
-		logger:   logger}
+		genesisFile: genesisFile,
+		keystoreDir: keystoreDir,
+		apiAddr:     apiAddr,
+		pwdFile:     pwdFile,
+		state:       state,
+		submitCh:    submitCh,
+		logger:      logger}
 }
 
 func (m *Service) Run() {
@@ -59,12 +60,11 @@ func (m *Service) makeKeyStore() error {
 	scryptN := keystore.StandardScryptN
 	scryptP := keystore.StandardScryptP
 
-	keydir := filepath.Join(m.dataDir, "keystore")
-	if err := os.MkdirAll(keydir, 0700); err != nil {
+	if err := os.MkdirAll(m.keystoreDir, 0700); err != nil {
 		return err
 	}
 
-	m.keyStore = keystore.NewKeyStore(keydir, scryptN, scryptP)
+	m.keyStore = keystore.NewKeyStore(m.keystoreDir, scryptN, scryptP)
 
 	return nil
 }
@@ -91,13 +91,11 @@ func (m *Service) unlockAccounts() error {
 }
 
 func (m *Service) createGenesisAccounts() error {
-	genesisFile := filepath.Join(m.dataDir, "genesis.json")
-
-	if _, err := os.Stat(genesisFile); os.IsNotExist(err) {
+	if _, err := os.Stat(m.genesisFile); os.IsNotExist(err) {
 		return nil
 	}
 
-	contents, err := ioutil.ReadFile(genesisFile)
+	contents, err := ioutil.ReadFile(m.genesisFile)
 	if err != nil {
 		return err
 	}

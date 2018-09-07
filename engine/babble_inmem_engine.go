@@ -10,30 +10,33 @@ import (
 	"github.com/mosaicnetworks/babble/hashgraph"
 	"github.com/mosaicnetworks/babble/net"
 	"github.com/mosaicnetworks/babble/node"
+	bserv "github.com/mosaicnetworks/babble/service"
 	"github.com/mosaicnetworks/evm-babble/service"
 	"github.com/mosaicnetworks/evm-babble/state"
 	"github.com/sirupsen/logrus"
 )
 
 type BabbleInmemEngine struct {
-	service *service.Service
-	state   *state.State
-	node    *node.Node
+	ethService    *service.Service
+	ethState      *state.State
+	babbleNode    *node.Node
+	babbleService *bserv.Service
 }
 
 func NewBabbleInmemEngine(config Config, logger *logrus.Logger) (*BabbleInmemEngine, error) {
 	submitCh := make(chan []byte)
 
 	state, err := state.NewState(logger,
-		config.BaseConfig.DbFile,
-		config.BaseConfig.Cache)
+		config.Eth.DbFile,
+		config.Eth.Cache)
 	if err != nil {
 		return nil, err
 	}
 
-	service := service.NewService(config.BaseConfig.EthDir,
-		config.BaseConfig.APIAddr,
-		config.BaseConfig.PwdFile,
+	service := service.NewService(config.Eth.Genesis,
+		config.Eth.Keystore,
+		config.Eth.EthAPIAddr,
+		config.Eth.PwdFile,
 		state,
 		submitCh,
 		logger)
@@ -52,7 +55,7 @@ func NewBabbleInmemEngine(config Config, logger *logrus.Logger) (*BabbleInmemEng
 	}
 
 	// Create the peer store
-	peerStore := net.NewJSONPeers(config.Babble.PeersFile)
+	peerStore := net.NewJSONPeers(config.Babble.BabbleDir)
 	// Try a read
 	peers, err := peerStore.Peers()
 	if err != nil {
@@ -116,7 +119,7 @@ func NewBabbleInmemEngine(config Config, logger *logrus.Logger) (*BabbleInmemEng
 	}
 
 	trans, err := net.NewTCPTransport(
-		config.Babble.BabbleAddr, nil, 2, conf.TCPTimeout, logger)
+		config.Babble.NodeAddr, nil, 2, conf.TCPTimeout, logger)
 	if err != nil {
 		return nil, fmt.Errorf("Creating TCP Transport: %s", err)
 	}
@@ -126,10 +129,13 @@ func NewBabbleInmemEngine(config Config, logger *logrus.Logger) (*BabbleInmemEng
 		return nil, fmt.Errorf("Initializing node: %s", err)
 	}
 
+	babbleService := bserv.NewService(config.Babble.BabbleAPIAddr, node, logger)
+
 	return &BabbleInmemEngine{
-		state:   state,
-		service: service,
-		node:    node,
+		ethState:      state,
+		ethService:    service,
+		babbleNode:    node,
+		babbleService: babbleService,
 	}, nil
 
 }
@@ -140,9 +146,13 @@ Implement Engine interface
 
 func (p *BabbleInmemEngine) Run() error {
 
-	go p.service.Run()
+	//ETH API service
+	go p.ethService.Run()
 
-	p.node.Run(true)
+	//Babble API service
+	go p.babbleService.Serve()
+
+	p.babbleNode.Run(true)
 
 	return nil
 }
