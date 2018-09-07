@@ -12,7 +12,7 @@ PASS=${3:-"../pwd.txt"}
 
 for i in $(seq 1 $N) 
 do
-	dest=$DEST/node$i/eth
+	dest=$DEST/node$i/eth/eth
 	mkdir -p $dest
 	# use a Docker container to run the geth command that creates accounts. This
 	# saves us the trouble of installing geth locally
@@ -46,7 +46,7 @@ cp $PASS $DEST
 
 for i in $(seq 1 $N) 
 do
-	dest=$DEST/node$i/eth
+	dest=$DEST/node$i/eth/eth
 	cp $DEST/genesis.json $dest/
 	cp $PASS $dest
 	cp -r $dest/keystore/* $gKeystore

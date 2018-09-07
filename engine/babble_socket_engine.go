@@ -1,6 +1,8 @@
 package engine
 
 import (
+	"time"
+
 	bproxy "github.com/mosaicnetworks/babble/proxy/babble"
 	"github.com/mosaicnetworks/evm-babble/service"
 	"github.com/mosaicnetworks/evm-babble/state"
@@ -18,21 +20,23 @@ type BabbleSocketEngine struct {
 func NewBabbleSocketEngine(config Config, logger *logrus.Logger) (*BabbleSocketEngine, error) {
 	submitCh := make(chan []byte)
 
-	state, err := state.NewState(logger, config.databaseFile, config.cache)
+	state, err := state.NewState(logger,
+		config.BaseConfig.DbFile,
+		config.BaseConfig.Cache)
 	if err != nil {
 		return nil, err
 	}
 
-	service := service.NewService(config.ethDir,
-		config.apiAddr,
-		config.pwdFile,
+	service := service.NewService(config.BaseConfig.EthDir,
+		config.BaseConfig.APIAddr,
+		config.BaseConfig.PwdFile,
 		state,
 		submitCh,
 		logger)
 
-	babbleProxy, err := bproxy.NewSocketBabbleProxy(config.babbleAddr,
-		config.proxyAddr,
-		config.timeout,
+	babbleProxy, err := bproxy.NewSocketBabbleProxy(config.Babble.BabbleAddr,
+		config.Babble.ProxyAddr,
+		time.Duration(config.Babble.TCPTimeout)*time.Millisecond,
 		logger)
 	if err != nil {
 		return nil, err

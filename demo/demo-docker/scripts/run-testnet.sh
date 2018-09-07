@@ -29,7 +29,7 @@ do
     --proxy_addr="0.0.0.0:1339" \
     --babble_addr="172.77.5.$i:1338" \
     --api_addr="0.0.0.0:8080"
-    docker cp conf/node$i/eth client$i:/.evm-babble
+    docker cp conf/node$i/eth/ client$i:/.evm-babble
     docker start client$i
 
     docker create --name=web$i --net=babblenet --ip=172.77.5.$(($N+$N+$i)) mosaicnetworks/evm-babble-ui:0.1.0

@@ -18,4 +18,5 @@ import:
   - params
   - rlp
 - package: github.com/gorilla/mux
-- package: gopkg.in/urfave/cli.v1
+- package: 	"github.com/spf13/cobra"
+- package:	"github.com/spf13/viper"

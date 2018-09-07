@@ -1,7 +1,6 @@
 package engine
 
 import (
-	"encoding/json"
 	"fmt"
 	"os"
 	"sort"
@@ -25,14 +24,16 @@ type BabbleInmemEngine struct {
 func NewBabbleInmemEngine(config Config, logger *logrus.Logger) (*BabbleInmemEngine, error) {
 	submitCh := make(chan []byte)
 
-	state, err := state.NewState(logger, config.databaseFile, config.cache)
+	state, err := state.NewState(logger,
+		config.BaseConfig.DbFile,
+		config.BaseConfig.Cache)
 	if err != nil {
 		return nil, err
 	}
 
-	service := service.NewService(config.ethDir,
-		config.apiAddr,
-		config.pwdFile,
+	service := service.NewService(config.BaseConfig.EthDir,
+		config.BaseConfig.APIAddr,
+		config.BaseConfig.PwdFile,
 		state,
 		submitCh,
 		logger)
@@ -41,27 +42,31 @@ func NewBabbleInmemEngine(config Config, logger *logrus.Logger) (*BabbleInmemEng
 
 	//------------------------------------------------------------------------------
 
-	//Check private key
-	pemKey := &crypto.PemKey{}
-	key, err := pemKey.ReadKeyFromBuf([]byte(config.privKey))
+	// Create the PEM key
+	pemKey := crypto.NewPemKey(config.Babble.BabbleDir)
+
+	// Try a read
+	key, err := pemKey.ReadKey()
 	if err != nil {
 		return nil, err
 	}
 
-	//Check peers
-	var netPeers []net.Peer
-	if err := json.Unmarshal([]byte(config.peers), &netPeers); err != nil {
+	// Create the peer store
+	peerStore := net.NewJSONPeers(config.Babble.PeersFile)
+	// Try a read
+	peers, err := peerStore.Peers()
+	if err != nil {
 		return nil, err
 	}
 
 	// There should be at least two peers
-	if len(netPeers) < 2 {
+	if len(peers) < 2 {
 		return nil, fmt.Errorf("Should define at least two peers")
 	}
 
-	sort.Sort(net.ByPubKey(netPeers))
+	sort.Sort(net.ByPubKey(peers))
 	pmap := make(map[string]int)
-	for i, p := range netPeers {
+	for i, p := range peers {
 		pmap[p.PubKeyHex] = i
 	}
 
@@ -75,12 +80,12 @@ func NewBabbleInmemEngine(config Config, logger *logrus.Logger) (*BabbleInmemEng
 	}).Debug("PARTICIPANTS")
 
 	conf := node.NewConfig(
-		time.Duration(config.heartbeat)*time.Millisecond,
-		time.Duration(config.tcpTimeout)*time.Millisecond,
-		config.cacheSize,
-		config.syncLimit,
-		config.storeType,
-		config.storePath,
+		time.Duration(config.Babble.Heartbeat)*time.Millisecond,
+		time.Duration(config.Babble.TCPTimeout)*time.Millisecond,
+		config.Babble.CacheSize,
+		config.Babble.SyncLimit,
+		config.Babble.StoreType,
+		config.Babble.StorePath,
 		logger)
 
 	//Instantiate the Store (inmem or badger)
@@ -111,12 +116,12 @@ func NewBabbleInmemEngine(config Config, logger *logrus.Logger) (*BabbleInmemEng
 	}
 
 	trans, err := net.NewTCPTransport(
-		config.babbleAddr, nil, 2, conf.TCPTimeout, logger)
+		config.Babble.BabbleAddr, nil, 2, conf.TCPTimeout, logger)
 	if err != nil {
 		return nil, fmt.Errorf("Creating TCP Transport: %s", err)
 	}
 
-	node := node.NewNode(conf, nodeID, key, netPeers, store, trans, appProxy)
+	node := node.NewNode(conf, nodeID, key, peers, store, trans, appProxy)
 	if err := node.Init(needBootstrap); err != nil {
 		return nil, fmt.Errorf("Initializing node: %s", err)
 	}
