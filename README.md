@@ -1,3 +1,6 @@
+UPDATE OCTOBER 14, 2018
+Deprecated in favor of [EVM Lite](https://github.com/mosaicnetworks/evm-lite)
+
 # EVM-BABBLE
 Ethereum Virtual Machine and Babble Consensus
 
